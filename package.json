@@ -1,0 +1,15 @@
+{
+  "name": "js-to-php",
+  "version": "0.0.1",
+  "description": "JavaScript to PHP transpiler.",
+  "main": "index.js",
+  "dependencies": {
+    "esprima-fb": "^5001.1.0-dev-harmony-fb"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Endel Dreyer",
+  "license": "MIT"
+}
