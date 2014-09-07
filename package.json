@@ -1,8 +1,9 @@
 {
   "name": "js2php",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "JavaScript to PHP transpiler.",
   "main": "index.js",
+  "bin": "js2php",
   "dependencies": {
     "esprima-fb": "^5001.1.0-dev-harmony-fb"
   },
