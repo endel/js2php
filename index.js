@@ -65,10 +65,10 @@ module.exports = function(file) {
 
     } else if (node.type == "AssignmentExpression") {
       content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
-      semicolon = true;
 
     } else if (node.type == "ExpressionStatement") {
       content = visit(node.expression, node);
+      semicolon = true;
 
     } else if (node.type == "CallExpression") {
       node.callee.isCallee = true;
@@ -91,10 +91,7 @@ module.exports = function(file) {
       }
 
       // allow semicolon if parent node isn't MemberExpression or Property
-      if (node.parent.type !== "MemberExpression" &&
-          node.parent.type !== "Property" &&
-          node.parent.type !== "LogicalExpression" &&
-          node.parent.type !== "CallExpression") {
+      if (node.parent.type == "ExpressionStatement") {
         semicolon = true;
       }
 
@@ -108,11 +105,13 @@ module.exports = function(file) {
       }
 
       if (node != newNode) {
+        // fix parent node type
         content = visit(newNode, node.parent);
 
       } else {
-        var accessor = (node.object.static) ? "::" : "->";
         node.object.static = (node.object.name || node.object.value || "").match(/^[A-Z]/);
+
+        var accessor = (node.object.static) ? "::" : "->";
 
         if (node.computed) {
           content = visit(node.object, node) + "[" + visit(node.property, node) + "]";

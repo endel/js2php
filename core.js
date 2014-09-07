@@ -11,7 +11,7 @@ module.exports = {
         type: 'Identifier',
         name: 'array_unshift',
       },
-      arguments: [ node.parent.callee.object ]
+      arguments: [node.parent.callee.object, node.parent.arguments[0]]
     };
   },
 
@@ -26,6 +26,17 @@ module.exports = {
     };
   },
 
+  reverse: function(node) {
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'array_reverse',
+      },
+      arguments: [ node.parent.callee.object ]
+    };
+  },
+
   push: function(node) {
     return {
       type: 'CallExpression',
@@ -33,7 +44,7 @@ module.exports = {
         type: 'Identifier',
         name: 'array_push',
       },
-      arguments: [ node.parent.callee.object ]
+      arguments: [ node.parent.callee.object, node.parent.arguments[0] ]
     };
   },
 
@@ -59,8 +70,19 @@ module.exports = {
     };
   },
 
+  splice: function(node) {
+    node.parent.arguments.unshift(node.parent.callee.object);
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'array_splice',
+      },
+      arguments: node.parent.arguments
+    };
+  },
+
   indexOf: function(node) {
-    console.log()
     return {
       type: 'CallExpression',
       callee: {
@@ -72,7 +94,7 @@ module.exports = {
   },
 
   length: function(node) {
-    var object = node.parent.callee.object || node.object,
+    var object = (node.parent.callee && node.parent.callee.object) || node.object,
         // TODO: identify data-types from "Identifier" types
         isString = (object.type=='Literal' && object.raw.match(/^['|"]/)),
         method = isString ? "strlen" : "count";
@@ -98,10 +120,7 @@ module.exports = {
         type: 'Identifier',
         name: 'trim',
       },
-      arguments: [ {
-        type: 'Identifier',
-        name: node.object.name,
-      } ]
+      arguments: [ node.parent.callee.object ]
     };
   },
 
@@ -112,10 +131,7 @@ module.exports = {
         type: 'Identifier',
         name: 'rtrim',
       },
-      arguments: [ {
-        type: 'Identifier',
-        name: node.object.name,
-      } ]
+      arguments: [ node.parent.callee.object ]
     };
   },
 
@@ -126,10 +142,7 @@ module.exports = {
         type: 'Identifier',
         name: 'ltrim',
       },
-      arguments: [ {
-        type: 'Identifier',
-        name: node.object.name,
-      } ]
+      arguments: [ node.parent.callee.object ]
     };
   },
 
@@ -140,10 +153,7 @@ module.exports = {
         type: 'Identifier',
         name: 'strtoupper',
       },
-      arguments: [ {
-        type: 'Identifier',
-        name: node.object.name,
-      } ]
+      arguments: [ node.parent.callee.object ]
     };
   },
 
@@ -154,10 +164,7 @@ module.exports = {
         type: 'Identifier',
         name: 'strtolower',
       },
-      arguments: [ {
-        type: 'Identifier',
-        name: node.object.name,
-      } ]
+      arguments: [ node.parent.callee.object ]
     };
   },
 
