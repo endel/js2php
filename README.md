@@ -1,4 +1,4 @@
-js-to-php
+js2php
 ===
 
 JavaScript to PHP source-to-source transpiler.

@@ -1,4 +1,5 @@
 var fs = require('fs'),
+    core = require('./core');
     esprima = require('esprima-fb');
 
 module.exports = function(file) {
@@ -73,6 +74,12 @@ module.exports = function(file) {
       node.callee.isCallee = true;
       content = visit(node.callee, node);
 
+      // call expression were overriden, let's return as it is
+      // TODO: support nested custom calls. Example: `.substr(1).toLowerCase()`
+      if (node.callee.property && core[node.callee.property.name]) {
+        return content;
+      }
+
       if (node.arguments) {
         var arguments = [];
 
@@ -92,14 +99,27 @@ module.exports = function(file) {
       }
 
     } else if (node.type == "MemberExpression") {
-      node.object.static = (node.object.name || node.object.value || "").match(/^[A-Z]/);
+      var newNode = node;
 
-      var accessor = (node.object.static) ? "::" : "->";
-      if (node.computed) {
-        content = visit(node.object, node) + "[" + visit(node.property, node) + "]";
+      // is a core function?
+      if (core[node.property.name]) {
+        var originalType = node.type;
+        newNode = core[node.property.name](node);
+      }
+
+      if (node != newNode) {
+        content = visit(newNode, node.parent);
+
       } else {
-        node.property.isMemberExpression = true;
-        content = visit(node.object, node) + accessor + visit(node.property, node);
+        var accessor = (node.object.static) ? "::" : "->";
+        node.object.static = (node.object.name || node.object.value || "").match(/^[A-Z]/);
+
+        if (node.computed) {
+          content = visit(node.object, node) + "[" + visit(node.property, node) + "]";
+        } else {
+          node.property.isMemberExpression = true;
+          content = visit(node.object, node) + accessor + visit(node.property, node);
+        }
       }
 
     } else if (node.type == "FunctionDeclaration") {
@@ -176,33 +196,33 @@ module.exports = function(file) {
       node.value.type = "FunctionDeclaration";
       node.value.id = { name: node.key.name };
 
-      content += visit(node.value);
+      content += visit(node.value, node);
 
     } else if (node.type == "ThisExpression") {
       content = "$this";
 
     } else if (node.type == "IfStatement") {
-      content = "if ("+visit(node.test)+")";
-      content += "{" + visit(node.consequent) + "}";
+      content = "if ("+visit(node.test, node)+") {\n";
+      content += visit(node.consequent, node) + "}";
 
       if (node.alternate) {
         content += " else ";
 
         if (node.alternate.type == "BlockStatement") {
-          content += "{"+visit(node.alternate)+"}";
+          content += "{"+visit(node.alternate, node)+"}";
 
         } else {
-          content += visit(node.alternate)
+          content += visit(node.alternate, node)
         }
       }
 
     } else if (node.type == "ForStatement") {
       content = "for (";
-      content += visit(node.init);
-      content += visit(node.test) + ";" ;
-      content += visit(node.update);
+      content += visit(node.init, node);
+      content += visit(node.test, node) + ";" ;
+      content += visit(node.update, node);
       content += ") {";
-      content += visit(node.body);
+      content += visit(node.body, node);
       content += "}";
 
     } else if (node.type == "ForInStatement") {
@@ -210,7 +230,7 @@ module.exports = function(file) {
       content += "{" + visit(node.body, node) + "}";
 
     } else if (node.type == "UpdateExpression") {
-      content = visit(node.argument) + node.operator;
+      content = visit(node.argument, node) + node.operator;
 
     } else if (node.type == "SwitchStatement") {
       content = "switch (" + visit(node.discriminant, node) + ")";
@@ -223,13 +243,13 @@ module.exports = function(file) {
     } else if (node.type == "SwitchCase") {
 
       if (node.test) {
-        content += "case " + visit(node.test) + ":\n";
+        content += "case " + visit(node.test, node) + ":\n";
       } else {
         content =  "default:\n";
       }
 
       for (var i=0; i < node.consequent.length; i++) {
-        content += visit(node.consequent[i]);
+        content += visit(node.consequent[i], node);
       }
 
     } else if (node.type == "BreakStatement") {
@@ -239,7 +259,7 @@ module.exports = function(file) {
       // re-use CallExpression for NewExpression's
       node.type = "CallExpression";
 
-      return "new " + visit(node);
+      return "new " + visit(node, node);
 
     } else {
       console.log("'" + node.type + "' not implemented.", node);
