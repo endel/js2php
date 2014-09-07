@@ -11,6 +11,7 @@ function hello(a, b) {
   return "hello!";
 }
 
+var_dump(hello.apply(hello, [5,6]))
+var_dump(hello(5, 6))
 
-echo(hello(5, 6))
-var_dump(something(5), sum(1,2))
+// var_dump(something(5), sum(1,2))

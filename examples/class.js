@@ -47,4 +47,5 @@ class ClassExample {
 
 // Instantiate class and call getter method
 example = new ClassExample("awesome");
-echo(example.hello())
+var_dump(example.hello.apply());
+var_dump(example.hello());
