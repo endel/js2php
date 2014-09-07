@@ -1,7 +1,7 @@
 js-to-php
 ===
 
-JavaScript to PHP source-to-source tranpiler.
+JavaScript to PHP source-to-source transpiler.
 
 **This is an experiment. Please do not use it.**
 
