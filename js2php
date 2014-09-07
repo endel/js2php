@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+
+var js2php = require('./index.js');
+console.log( js2php(process.argv[2]) );
+

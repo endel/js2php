@@ -1,11 +1,12 @@
 {
-  "name": "js-to-php",
+  "name": "js2php",
   "version": "0.0.1",
   "description": "JavaScript to PHP transpiler.",
   "main": "index.js",
   "dependencies": {
     "esprima-fb": "^5001.1.0-dev-harmony-fb"
   },
+  "keywords": [ "javascript", "php", "transpiler", "transcompiler" ],
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

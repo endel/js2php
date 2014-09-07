@@ -1,8 +1,21 @@
-class KlassExample {
+class ClassExample {
+
+  constructor(something) {
+    this._something = something
+  }
 
   toArray(model, array) {
     return array;
   }
+
+  hello() {
+    return "Hello world";
+  }
+
+  // TODO: getter / setter methods
+  // get something() {
+  //   return "Something: " + this._something;
+  // }
 
   creating(model) {
     Mail.send({
@@ -31,3 +44,7 @@ class KlassExample {
   }
 
 }
+
+// Instantiate class and call getter method
+example = new ClassExample("awesome");
+echo(example.hello())
