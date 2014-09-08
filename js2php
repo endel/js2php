@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 
-var js2php = require('./index.js');
-console.log( js2php(process.argv[2]) );
+var fs = require('fs'),
+    js2php = require('./index.js');
 
+if (process.stdin.isTTY) {
+  console.log(  js2php(fs.readFileSync(process.argv[2]).toString()) );
+} else {
+  var code = "";
+  process.stdin.resume();
+  process.stdin.on('data', function(data) { code += data; });
+  process.stdin.on('end', function() {
+    console.log( js2php(code) );
+  });
+}

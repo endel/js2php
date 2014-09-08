@@ -1,20 +1,20 @@
-var fs = require('fs'),
-    core = require('./core');
+var core = require('./core'),
+    scope = require('./scope'),
     esprima = require('esprima-fb');
 
-module.exports = function(file) {
-  var ast = esprima.parse(fs.readFileSync(file).toString(), {
+module.exports = function(code) {
+  var ast = esprima.parse(code, {
     loc : true,
     range : true,
     tokens : true,
     comment : true,
   });
 
-  function getTokens(range) {
-    return ast.tokens.filter(function(token) {
-      return token.range[0] >= range[0] && token.range[1] <= range[1];
-    });
-  }
+  // function getTokens(range) {
+  //   return ast.tokens.filter(function(token) {
+  //     return token.range[0] >= range[0] && token.range[1] <= range[1];
+  //   });
+  // }
 
   function visit(node, parent) {
     var content = "", semicolon = false;
@@ -142,6 +142,8 @@ module.exports = function(file) {
         parameters.push(param);
       }
 
+      scope.create(node);
+
       content = "function " + node.id.name;
       content += "("+parameters.join(", ")+") {\n";
       content += visit(node.body, node);
@@ -259,6 +261,14 @@ module.exports = function(file) {
       node.type = "CallExpression";
 
       return "new " + visit(node, node);
+
+    } else if (node.type == "FunctionExpression") {
+
+      // Re-use FunctionDeclaration structure for method definitions
+      node.type = "FunctionDeclaration";
+      node.id = { name: node.id || "" };
+
+      content = visit(node);
 
     } else {
       console.log("'" + node.type + "' not implemented.", node);
