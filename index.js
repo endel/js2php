@@ -1,5 +1,6 @@
 var core = require('./core'),
     scope = require('./scope'),
+    utils = require('./utils'),
     esprima = require('esprima-fb');
 
 module.exports = function(code) {
@@ -269,6 +270,29 @@ module.exports = function(code) {
       node.id = { name: node.id || "" };
 
       content = visit(node);
+
+
+      // Modules & Export (http://wiki.ecmascript.org/doku.php?id=harmony:modules_examples)
+    } else if (node.type == "ModuleDeclaration") {
+      content = "namespace " + utils.capitaliseFirstLetter(node.id.value) + ";\n";
+      content += visit(node.body);
+
+    } else if (node.type == "ExportDeclaration") {
+      content = visit(node.declaration, node);
+
+    } else if (node.type == "ImportDeclaration") {
+      for (var i=0,length = node.specifiers.length;i<length;i++) {
+        content += visit(node.specifiers[i], node);
+      }
+
+    } else if (node.type == "ImportSpecifier") {
+        var namespace = utils.capitaliseFirstLetter(node.parent.source.value);
+        content += "use " + namespace + "\\" + node.id.name;
+
+        // alias
+        if (node.name) { content += " as "+node.name.name; }
+
+        content += ";\n";
 
     } else {
       console.log("'" + node.type + "' not implemented.", node);
