@@ -1,17 +1,23 @@
+var utils = require('../utils');
+
 module.exports = {
 
   unshift: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
         name: 'array_unshift',
       },
-      arguments: [node.parent.callee.object, node.parent.arguments[0]]
+      arguments: [node.parent.callee.object, args[0]]
     };
   },
 
   shift: function(node) {
+    node.parent.arguments = false;
     return {
       type: 'CallExpression',
       callee: {
@@ -34,13 +40,16 @@ module.exports = {
   },
 
   push: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
         name: 'array_push',
       },
-      arguments: [ node.parent.callee.object, node.parent.arguments[0] ]
+      arguments: [ node.parent.callee.object, args[0] ]
     };
   },
 
@@ -56,36 +65,46 @@ module.exports = {
   },
 
   join: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
         name: 'join',
       },
-      arguments: [ node.parent.arguments[0], node.parent.callee.object ]
+      arguments: [ args[0], node.parent.callee.object ]
     };
   },
 
   splice: function(node) {
-    node.parent.arguments.unshift(node.parent.callee.object);
+    var args = utils.clone(node.parent.arguments);
+    args.unshift(node.parent.callee.object);
+
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
         name: 'array_splice',
       },
-      arguments: node.parent.arguments
+      arguments: args
     };
   },
 
   indexOf: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
         name: 'array_search',
       },
-      arguments: [ node.parent.arguments[0], node.parent.callee.object ]
+      arguments: [ args[0], node.parent.callee.object ]
     };
   },
 

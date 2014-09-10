@@ -1,3 +1,5 @@
+var utils = require('../utils');
+
 module.exports = {
 
   //
@@ -5,6 +7,8 @@ module.exports = {
   //
 
   trim: function(node) {
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
@@ -16,6 +20,8 @@ module.exports = {
   },
 
   trimRight: function(node) {
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
@@ -27,6 +33,8 @@ module.exports = {
   },
 
   trimLeft: function(node) {
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
@@ -38,6 +46,8 @@ module.exports = {
   },
 
   toUpperCase: function(node) {
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
@@ -49,6 +59,8 @@ module.exports = {
   },
 
   toLowerCase: function(node) {
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
@@ -60,19 +72,26 @@ module.exports = {
   },
 
   split: function(node) {
-    node.parent.arguments.unshift(node.parent.callee.object);
+    var args = utils.clone(node.parent.arguments);
+    args.unshift(node.parent.callee.object);
+
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
         name: 'str_split',
       },
-      arguments: node.parent.arguments
+      arguments: args
     };
   },
 
   substr: function(node) {
-    node.parent.arguments.unshift(node.parent.callee.object);
+    var args = utils.clone(node.parent.arguments);
+    args.unshift(node.parent.callee.object);
+
+    node.parent.arguments = false;
 
     return {
       type: 'CallExpression',
@@ -80,19 +99,24 @@ module.exports = {
         type: 'Identifier',
         name: 'substr',
       },
-      arguments: node.parent.arguments
+      arguments: args
     };
   },
 
   match: function(node) {
-    node.parent.arguments[0].raw = "'" + node.parent.arguments[0].raw + "'";
+    var args = utils.clone(node.parent.arguments);
+    args.unshift(node.parent.callee.object);
+    args[0].raw = "'" + node.parent.arguments[0].raw + "'";
+
+    node.parent.arguments = false;
+
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
         name: 'preg_match',
       },
-      arguments: [ node.parent.arguments[0], node.parent.callee.object ]
+      arguments: [ args[0], node.parent.callee.object ]
     };
   },
 

@@ -84,11 +84,11 @@ module.exports = function(code) {
       node.callee.isCallee = true;
       content = visit(node.callee, node);
 
-      // call expression were overriden, let's return as it is
-      // TODO: support nested custom calls. Example: `.substr(1).toLowerCase()`
-      if (node.callee.property && core[node.callee.property.name]) {
-        return content;
-      }
+      // // call expression were overriden, let's return as it is
+      // // TODO: support nested custom calls. Example: `.substr(1).toLowerCase()`
+      // if (node.callee.property && node.isOverriden || node.forceSkip) {
+      //   return content;
+      // }
 
       if (node.arguments) {
         var arguments = [];
@@ -106,13 +106,7 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "MemberExpression") {
-      var newNode = node;
-
-      // is a core function?
-      if (core[node.property.name]) {
-        var originalType = node.type;
-        newNode = core[node.property.name](node);
-      }
+      var newNode = core.evaluate(node);
 
       if (node != newNode) {
         // fix parent node type
