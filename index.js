@@ -34,11 +34,8 @@ module.exports = function(code) {
     } else if (node.type == "VariableDeclarator") {
       // declaration of one variable
       content = '$' + node.id.name;
-
-      if (node.init) {
-        content += ' = ' + visit(node.init, node);
-        semicolon = true;
-      }
+      content += ' = ' + ((node.init != null) ? visit(node.init, node) : 'null');
+      semicolon = true;
 
     } else if (node.type == "Identifier") {
       var identifier = (node.name || node.value);
