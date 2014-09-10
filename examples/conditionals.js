@@ -1,4 +1,7 @@
 var x = 1, y = 50;
+var ternary = (x == 1) ? "Yes" : "No"
+
+var_dump(ternary);
 
 var_dump( x < y )
 var_dump( x == 2 )

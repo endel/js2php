@@ -34,8 +34,15 @@ module.exports = function(code) {
     } else if (node.type == "VariableDeclarator") {
       // declaration of one variable
       content = '$' + node.id.name;
-      content += ' = ' + ((node.init != null) ? visit(node.init, node) : 'null');
-      semicolon = true;
+
+      if (node.init) {
+        content += ' = ' + visit(node.init, node);
+        semicolon = true;
+      } else if (node.parent.parent.type !== "ForInStatement" &&
+                 node.parent.parent.type !== "ForStatement") {
+        content += ' = null';
+        semicolon = true;
+      }
 
     } else if (node.type == "Identifier") {
       var identifier = (node.name || node.value);
@@ -59,6 +66,11 @@ module.exports = function(code) {
 
     } else if (node.type == "AssignmentExpression") {
       content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
+
+    } else if (node.type == "ConditionalExpression") {
+      content = "(" + visit(node.test, node) + ")" +
+        " ? " + visit(node.consequent, node) +
+        " : " + visit(node.alternate, node);
 
     } else if (node.type == "UnaryExpression") {
 
@@ -240,6 +252,12 @@ module.exports = function(code) {
         }
       }
 
+    } else if (node.type == "WhileStatement") {
+
+      content = "while (" + visit(node.test, node) + ") {";
+      content += visit(node.body, node);
+      content += "}";
+
     } else if (node.type == "ForStatement") {
       content = "for (";
       content += visit(node.init, node);
@@ -250,7 +268,7 @@ module.exports = function(code) {
       content += "}";
 
     } else if (node.type == "ForInStatement") {
-      content = "foreach (" + visit(node.right, node) + " as " + visit(node.left)+ " => $___)";
+      content = "foreach (" + visit(node.right, node) + " as " + visit(node.left, node)+ " => $___)";
       content += "{" + visit(node.body, node) + "}";
 
     } else if (node.type == "UpdateExpression") {

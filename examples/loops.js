@@ -1,7 +1,7 @@
 items = [1,2,3,4,5];
 
 for (var i=0; i < items.length; i++) {
-  console.log(items[i]);
+  var_dump(items[i]);
 }
 
 obj = {
@@ -12,4 +12,10 @@ obj = {
 
 for (var i in obj) {
   var_dump(i, obj[i]);
+}
+
+var j = 10
+while (j > 0) {
+  j--
+  var_dump(j)
 }
