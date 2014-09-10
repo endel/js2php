@@ -1,6 +1,8 @@
 var str = "Hello";
 var items = ["One", "Two", "Three"];
 
+var_dump(typeof something !== 'undefined')
+
 var_dump("something".toUpperCase())
 var_dump(items.length)
 

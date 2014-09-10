@@ -50,13 +50,31 @@ module.exports = function(code) {
       content = node.value;
 
     } else if (node.type == "Literal") {
-      content = node.raw;
+
+      var value = (node.raw.match(/^["']undefined["']$/)) ? "NULL" : node.raw;
+      content = value;
 
     } else if (node.type == "BinaryExpression" || node.type == "LogicalExpression") {
       content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
 
     } else if (node.type == "AssignmentExpression") {
       content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
+
+    } else if (node.type == "UnaryExpression") {
+
+      // override typeof unary expression
+      if (node.operator == 'typeof') {
+        content = visit({
+          type: 'CallExpression',
+          callee: {
+            type: 'Identifier',
+            name: 'gettype',
+          },
+          arguments: [node.argument]
+        }, node);
+      } else {
+        content = node.operator + visit(node.argument);
+      }
 
     } else if (node.type == "ExpressionStatement") {
       content = visit(node.expression, node);
