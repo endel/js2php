@@ -1,6 +1,12 @@
 module 'math' {
 
   class Formula {
+    constructor() {
+    }
+
+    static do_something() {
+      var_dump("Something!")
+    }
   }
 
   class Hello {

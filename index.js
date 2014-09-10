@@ -11,12 +11,6 @@ module.exports = function(code) {
     comment : true,
   });
 
-  // function getTokens(range) {
-  //   return ast.tokens.filter(function(token) {
-  //     return token.range[0] >= range[0] && token.range[1] <= range[1];
-  //   });
-  // }
-
   function visit(node, parent) {
     var content = "", semicolon = false;
 
@@ -110,9 +104,28 @@ module.exports = function(code) {
         content = visit(newNode, node.parent);
 
       } else {
-        node.object.static = (node.object.name || node.object.value || "").match(/^[A-Z]/);
 
-        var accessor = (node.object.static) ? "::" : "->";
+        var object, property;
+
+        if (node.object.type == "MemberExpression" && node.object.object && node.object.property) {
+          object = node.object.object,
+          property = node.object.property;
+        } else {
+          object = node.object;
+          property = node.property;
+        }
+
+        object.static = (object.name || object.value || "").match(/^[A-Z]/);
+        property.static = (property.name || property.value || "").match(/^[A-Z]/);
+
+        var accessor;
+        if (node.property.static && object.static) {
+          accessor = "\\"; // namespace
+        } else if (object.static) {
+          accessor = "::"; // static
+        } else {
+          accessor = "->"; // instance
+        }
 
         if (node.computed) {
           content = visit(node.object, node) + "[" + visit(node.property, node) + "]";
@@ -287,10 +300,10 @@ module.exports = function(code) {
 
     } else if (node.type == "ImportSpecifier") {
         var namespace = utils.capitaliseFirstLetter(node.parent.source.value);
-        content += "use " + namespace + "\\" + node.id.name;
+        content += "use \\" + namespace + "\\" + node.id.name;
 
         // alias
-        if (node.name) { content += " as "+node.name.name; }
+        if (node.name) { content += " as " + node.name.name; }
 
         content += ";\n";
 
