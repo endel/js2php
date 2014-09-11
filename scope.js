@@ -1,4 +1,6 @@
 function Scope() {
+  this.getters = [];
+  this.setters = [];
 
   this.register = function(node) {
   }
@@ -6,16 +8,18 @@ function Scope() {
 }
 
 module.exports = {
-  get: function(node) {
-    if (!node.scope) {
-      return (!node.parent) ? null : this.get(node.parent);
+
+  get: function(node, kind) {
+    if (node.scope && node.scope[kind]) {
+      return node.scope[kind];
     } else {
-      return node.scope;
+      return (!node.parent) ? {} : this.get(node.parent);
     }
   },
 
-  create: function(node) {
-    node.scope = new Scope();
+  create: function(node, kind) {
+    node.scope = {};
+    return node.scope[kind] = new Scope();
   }
 
 }

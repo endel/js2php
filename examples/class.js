@@ -13,9 +13,9 @@ class ClassExample {
   }
 
   // TODO: getter / setter methods
-  // get something() {
-  //   return "Something: " + this._something;
-  // }
+  get something() {
+    return "Something: " + this._something;
+  }
 
   creating(model) {
     Mail.send({

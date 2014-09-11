@@ -84,6 +84,18 @@ module.exports = function(code) {
           },
           arguments: [node.argument]
         }, node);
+
+      // override delete unary expression
+      } else if (node.operator == 'delete') {
+        content = visit({
+          type: 'CallExpression',
+          callee: {
+            type: 'Identifier',
+            name: 'unset',
+          },
+          arguments: [node.argument]
+        }, node);
+
       } else {
         content = node.operator + visit(node.argument);
       }
@@ -216,9 +228,27 @@ module.exports = function(code) {
         content += " extends " + node.superClass;
       }
 
+      var s = scope.create(node);
       content += "\n{\n" + visit(node.body, node) + "\n}\n";
 
+      // define getters and setters
+      if (s.getters) {
+      }
+
+      if (s.setters) {
+      }
+
+
     } else if (node.type == "MethodDefinition") {
+
+      // define getters and setters on scope
+      if (node.kind == "get") {
+        // scope.get(node).getters.push(node);
+        // return "";
+      } else if (node.kind == "set") {
+        // scope.get(node).setters.push(node);
+        // return "";
+      }
 
       // every method is public.
       content = "public ";
