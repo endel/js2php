@@ -6,6 +6,22 @@ module.exports = {
   // string methods
   //
 
+  replace: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    args.push(node.parent.callee.object)
+
+    node.parent.arguments = false;
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'str_replace',
+      },
+      arguments: args
+    };
+  },
+
   trim: function(node) {
     node.parent.arguments = false;
 
