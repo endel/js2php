@@ -67,6 +67,8 @@ module.exports = function(code) {
       content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
 
     } else if (node.type == "AssignmentExpression") {
+      scope.get(node).register(node.left);
+
       content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
 
     } else if (node.type == "ConditionalExpression") {
@@ -109,7 +111,10 @@ module.exports = function(code) {
     } else if (node.type == "CallExpression") {
 
       var calleeDefined = scope.get(node).getDefinition(node.callee);
-      node.callee.isCallee = (!calleeDefined || calleeDefined && calleeDefined.type != "VariableDeclarator");
+      // console.log("is defined?", calleeDefined, scope.get(node).definitions);
+
+      node.callee.isCallee = (!calleeDefined || calleeDefined && (calleeDefined.type != "Identifier" &&
+                                                                  calleeDefined.type != "VariableDeclarator"));
 
       content += visit(node.callee, node);
 
@@ -188,12 +193,24 @@ module.exports = function(code) {
         parameters.push(param);
       }
 
-      console.log(node)
-      // scope.create(node);
+      // function declaration creates a new scope
+      scope.create(node);
+
+      var func_contents = visit(node.body, node),
+          use = []; // TODO: get parent scope variables that isn't defined on this scope
 
       content = "function " + node.id.name;
-      content += "("+parameters.join(", ")+") {\n";
-      content += visit(node.body, node);
+      content += "("+parameters.join(", ")+") ";
+
+      // try to use parent's variables
+      // http://php.net/manual/pt_BR/functions.anonymous.php
+      if (use.length > 0) {
+        content += "use (" + use.join(', ') + ") ";
+      } else {
+        content += "{\n";
+      }
+
+      content += func_contents;
       content += "}\n";
 
     } else if (node.type == "ObjectExpression") {

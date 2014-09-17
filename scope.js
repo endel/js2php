@@ -1,5 +1,6 @@
-function Scope(root) {
+function Scope(root, parent) {
   this.node = root;
+  this.parent = parent;
 
   this.definitions = {};
 
@@ -15,6 +16,9 @@ function Scope(root) {
 
     if (node.type == 'VariableDeclarator') {
       name = node.id.name;
+
+    } else if (node.type == 'Identifier') {
+      name = node.name;
 
     } else if (node.type == 'MethodDefinition') {
     }
@@ -37,9 +41,7 @@ module.exports = {
   },
 
   create: function(node, kind) {
-    // node.scope = {};
-    // return node.scope[kind] = new Scope();
-    return node.scope = new Scope(node);
+    return node.scope = new Scope(node, node.parent && this.get(node.parent));
   }
 
 }
