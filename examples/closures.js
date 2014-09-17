@@ -5,5 +5,5 @@ var closure = function(a) {
   }
 }
 
-c = closure(5);
-var_dump(c(4) == 10);
+calling = closure(5);
+var_dump(calling(4) == 10);

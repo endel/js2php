@@ -11,18 +11,18 @@ module.exports = function(code) {
     comment : true,
   });
 
+  var rootScope = scope.create(ast, scope.KIND_ROOT);
+
   function visit(node, parent) {
     var content = "", semicolon = false;
 
     // set parent node
     if (parent) { node.parent = parent; }
 
-    if (node.type == "Program" ||
-        node.type == "BlockStatement" ||
-        node.type == "ClassBody") {
+    if (node.type == "Program" || node.type == "BlockStatement" || node.type == "ClassBody") {
 
       for (var i=0,length = node.body.length;i<length;i++) {
-        content += visit(node.body[i], node.body[i+1], (i == length-1), node);
+        content += visit(node.body[i], node);
       }
 
     } else if (node.type == "VariableDeclaration") {
@@ -32,6 +32,8 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "VariableDeclarator") {
+      scope.get(node).register(node);
+
       // declaration of one variable
       content = '$' + node.id.name;
 
@@ -105,14 +107,11 @@ module.exports = function(code) {
       semicolon = true;
 
     } else if (node.type == "CallExpression") {
-      node.callee.isCallee = true;
-      content = visit(node.callee, node);
 
-      // // call expression were overriden, let's return as it is
-      // // TODO: support nested custom calls. Example: `.substr(1).toLowerCase()`
-      // if (node.callee.property && node.isOverriden || node.forceSkip) {
-      //   return content;
-      // }
+      var calleeDefined = scope.get(node).getDefinition(node.callee);
+      node.callee.isCallee = (!calleeDefined || calleeDefined && calleeDefined.type != "VariableDeclarator");
+
+      content += visit(node.callee, node);
 
       if (node.arguments) {
         var arguments = [];
@@ -125,7 +124,7 @@ module.exports = function(code) {
       }
 
       // allow semicolon if parent node isn't MemberExpression or Property
-      if (node.parent.type == "ExpressionStatement") {
+      if (node.parent && node.parent.type == "ExpressionStatement") {
         semicolon = true;
       }
 
@@ -189,7 +188,8 @@ module.exports = function(code) {
         parameters.push(param);
       }
 
-      scope.create(node);
+      console.log(node)
+      // scope.create(node);
 
       content = "function " + node.id.name;
       content += "("+parameters.join(", ")+") {\n";
@@ -240,6 +240,7 @@ module.exports = function(code) {
 
 
     } else if (node.type == "MethodDefinition") {
+      var s = scope.get(node);
 
       // define getters and setters on scope
       if (node.kind == "get") {
@@ -249,6 +250,8 @@ module.exports = function(code) {
         // scope.get(node).setters.push(node);
         // return "";
       }
+
+      s.register(node);
 
       // every method is public.
       content = "public ";
@@ -339,13 +342,13 @@ module.exports = function(code) {
       node.type = "FunctionDeclaration";
       node.id = { name: node.id || "" };
 
-      content = visit(node);
+      content = visit(node, node.parent);
 
 
       // Modules & Export (http://wiki.ecmascript.org/doku.php?id=harmony:modules_examples)
     } else if (node.type == "ModuleDeclaration") {
       content = "namespace " + utils.capitaliseFirstLetter(node.id.value) + ";\n";
-      content += visit(node.body);
+      content += visit(node.body, node);
 
     } else if (node.type == "ExportDeclaration") {
       content = visit(node.declaration, node);
