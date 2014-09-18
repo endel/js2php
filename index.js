@@ -50,6 +50,7 @@ module.exports = function(code) {
       var identifier = (node.name || node.value);
 
       if (!node.static && !node.isCallee && !node.isMemberExpression) {
+        scope.get(node).getDefinition(node);
         content = "$";
       }
 
@@ -177,6 +178,9 @@ module.exports = function(code) {
           parameters = [],
           defaults = node.defaults || [];
 
+      // function declaration creates a new scope
+      scope.create(node);
+
       // compute function params
       for (var i=0; i < node.params.length; i++) {
         if (defaults[i]) {
@@ -190,28 +194,31 @@ module.exports = function(code) {
           param = visit(node.params[i], node)
         }
 
+        // register parameter identifiers
+        if (scope.get(node).parent) {
+          scope.get(node).register(node.params[i]);
+        }
+
         parameters.push(param);
       }
 
-      // function declaration creates a new scope
-      scope.create(node);
-
       var func_contents = visit(node.body, node),
-          use = []; // TODO: get parent scope variables that isn't defined on this scope
+          using = scope.get(node).using;
 
       content = "function " + node.id.name;
-      content += "("+parameters.join(", ")+") ";
+      content += "(" + parameters.join(", ") + ") ";
 
       // try to use parent's variables
       // http://php.net/manual/pt_BR/functions.anonymous.php
-      if (use.length > 0) {
-        content += "use (" + use.join(', ') + ") ";
-      } else {
-        content += "{\n";
+      if (using.length > 0) {
+        content += "use (" + using.map(function(identifier) {
+          return "&$" + identifier;
+        }).join(', ') + ") ";
       }
 
+      content += "{\n";
       content += func_contents;
-      content += "}\n";
+      content += "}";
 
     } else if (node.type == "ObjectExpression") {
       var properties = [];

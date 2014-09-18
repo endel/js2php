@@ -3,12 +3,22 @@ function Scope(root, parent) {
   this.parent = parent;
 
   this.definitions = {};
+  this.using = [];
 
   this.getters = [];
   this.setters = [];
 
   this.getDefinition = function(node) {
-    return this.definitions[ node.name ];
+    var value = this.definitions[ node.name ];
+
+    if (!value && this.parent) {
+      value = this.parent.getDefinition(node);
+      if (value) {
+        this.using.push(node.name);
+      }
+    }
+
+    return value;
   }
 
   this.register = function(node) {
