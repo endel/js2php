@@ -5,6 +5,84 @@ JavaScript to PHP source-to-source transpiler.
 
 **This is an experiment. Please do not use it.**
 
+Features
+---
+
+What does it converts?
+
+- Classes (ES6)
+- Namespaces (ES6)
+- Loops (while / for / do-while)
+- Functions and closures
+- Conditionals
+- [Core JavaScript](core)
+  - Array
+    - Array.prototype.unshift
+    - Array.prototype.shift
+    - Array.prototype.reverse
+    - Array.prototype.push
+    - Array.prototype.pop
+    - Array.prototype.join
+    - Array.prototype.splice
+    - Array.prototype.indexOf
+    - Array.prototype.length
+  - JSON
+    - JSON.parse
+    - JSON.stringify
+  - Math
+    - Math.E
+    - Math.LN2
+    - Math.LN10
+    - Math.LOG2E
+    - Math.LOG10E
+    - Math.PI
+    - Math.SQRT2
+    - Math.SQRT1_2
+    - Math.abs
+    - Math.acos
+    - Math.acosh
+    - Math.asin
+    - Math.asinh
+    - Math.atan
+    - Math.atanh
+    - Math.atan2
+    - Math.cbrt
+    - Math.ceil
+    - Math.clz32
+    - Math.cos
+    - Math.cosh
+    - Math.exp
+    - Math.expm1
+    - Math.floor
+    - Math.hypot
+    - Math.log
+    - Math.log1p
+    - Math.log10
+    - Math.max
+    - Math.min
+    - Math.pow
+    - Math.random
+    - Math.round
+    - Math.sin
+    - Math.sinh
+    - Math.sqrt
+    - Math.tan
+    - Math.tanh
+  - String
+    - String.prototype.replace
+    - String.prototype.trim
+    - String.prototype.trimRight
+    - String.prototype.trimLeft
+    - String.prototype.toUpperCase
+    - String.prototype.toLowerCase
+    - String.prototype.split
+    - String.prototype.substr
+    - String.prototype.match
+  - Function
+    - Function.prototype.apply
+    - Function.prototype.call
+  - Date (missing)
+
 Installation
 ---
 

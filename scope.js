@@ -13,7 +13,7 @@ function Scope(root, parent) {
 
     if (!value && this.parent) {
       value = this.parent.getDefinition(node);
-      if (value) {
+      if (value && this.using.indexOf(node.name) === -1) {
         this.using.push(node.name);
       }
     }
@@ -46,8 +46,7 @@ module.exports = {
     if (node.scope) {
       return node.scope;
     } else {
-      // TODO: 'node.parent' should never be equals to 'node'
-      return (node.parent != node) ? this.get(node.parent) : new Scope();
+      return this.get(node.parent);
     }
   },
 

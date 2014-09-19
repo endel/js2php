@@ -65,7 +65,25 @@ module.exports = function(code) {
       content = value;
 
     } else if (node.type == "BinaryExpression" || node.type == "LogicalExpression") {
-      content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
+
+      if (node.operator == 'in') {
+        content = visit({
+          type: 'CallExpression',
+          callee: {
+            type: 'Identifier',
+            name: 'isset',
+          },
+          arguments: [{
+            type: 'MemberExpression',
+            computed: true,
+            object: node.right,
+            property: node.left
+          }]
+        }, node);
+
+      } else {
+        content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
+      }
 
     } else if (node.type == "AssignmentExpression") {
       scope.get(node).register(node.left);
@@ -102,7 +120,7 @@ module.exports = function(code) {
         }, node);
 
       } else {
-        content = node.operator + visit(node.argument);
+        content = node.operator + visit(node.argument, node);
       }
 
     } else if (node.type == "ExpressionStatement") {
@@ -112,7 +130,6 @@ module.exports = function(code) {
     } else if (node.type == "CallExpression") {
 
       var calleeDefined = scope.get(node).getDefinition(node.callee);
-      // console.log("is defined?", calleeDefined, scope.get(node).definitions);
 
       node.callee.isCallee = (!calleeDefined || calleeDefined && (calleeDefined.type != "Identifier" &&
                                                                   calleeDefined.type != "VariableDeclarator"));
@@ -309,11 +326,27 @@ module.exports = function(code) {
         }
       }
 
+    } else if (node.type == "SequenceExpression") {
+      var expressions = [];
+
+      for (var i=0;i<node.expressions.length;i++) {
+        expressions.push( visit(node.expressions[i], node) );
+      }
+
+      content = expressions.join(', ') + ";";
+
     } else if (node.type == "WhileStatement") {
 
       content = "while (" + visit(node.test, node) + ") {";
       content += visit(node.body, node);
       content += "}";
+
+    } else if (node.type == "DoWhileStatement") {
+
+      content = "do {";
+      content += visit(node.body, node);
+      content += "} while (" + visit(node.test, node) + ")";
+      semicolon = true;
 
     } else if (node.type == "ForStatement") {
       content = "for (";
@@ -329,7 +362,16 @@ module.exports = function(code) {
       content += "{" + visit(node.body, node) + "}";
 
     } else if (node.type == "UpdateExpression") {
-      content = visit(node.argument, node) + node.operator;
+
+      if (node.prefix) {
+        content += node.operator;
+      }
+
+      content += visit(node.argument, node);
+
+      if (!node.prefix) {
+        content += node.operator;
+      }
 
     } else if (node.type == "SwitchStatement") {
       content = "switch (" + visit(node.discriminant, node) + ")";
@@ -355,10 +397,17 @@ module.exports = function(code) {
       content = "break;";
 
     } else if (node.type == "NewExpression") {
-      // re-use CallExpression for NewExpression's
-      node.type = "CallExpression";
+      // prevent circular JSON when cloning the node.
+      var keepParent = node.parent;
+      delete node.parent;
 
-      return "new " + visit(node, node);
+      // re-use CallExpression for NewExpression's
+      var newNode = utils.clone(node);
+      newNode.type = "CallExpression";
+
+      node.parent = keepParent;
+
+      return "new " + visit(newNode, node);
 
     } else if (node.type == "FunctionExpression") {
 
