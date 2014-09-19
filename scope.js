@@ -42,15 +42,16 @@ module.exports = {
   KIND_ROOT : 0,
   KIND_NODE : 1,
 
-  get: function(node, kind) {
-    if (node.scope) { //  && node.scope[kind]
-      return node.scope; // [kind];
+  get: function(node) {
+    if (node.scope) {
+      return node.scope;
     } else {
-      return this.get(node.parent);
+      // TODO: 'node.parent' should never be equals to 'node'
+      return (node.parent != node) ? this.get(node.parent) : new Scope();
     }
   },
 
-  create: function(node, kind) {
+  create: function(node) {
     return node.scope = new Scope(node, node.parent && this.get(node.parent));
   }
 

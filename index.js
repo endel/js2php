@@ -218,7 +218,7 @@ module.exports = function(code) {
 
       content += "{\n";
       content += func_contents;
-      content += "}";
+      content += "}\n";
 
     } else if (node.type == "ObjectExpression") {
       var properties = [];
