@@ -1,3 +1,5 @@
+var utils = require('./utils');
+
 function Scope(root, parent) {
   this.node = root;
   this.parent = parent;
@@ -31,6 +33,16 @@ function Scope(root, parent) {
       name = node.name;
 
     } else if (node.type == 'MethodDefinition') {
+      if (node.kind == "get") {
+        var getter = utils.clone(node);
+        getter.kind = null;
+        this.getters.push(getter);
+      } else if (node.kind == "set") {
+        var setter = utils.clone(node);
+        setter.kind = null;
+        this.setters.push(setter);
+      }
+
     }
 
     this.definitions[name] = node;

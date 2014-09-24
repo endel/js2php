@@ -33,6 +33,7 @@ Features
 What does it converts?
 
 - Classes (ES6)
+- Getters and Setters (ES6)
 - Namespaces (ES6)
 - Loops (while / for / do-while)
 - Functions and closures

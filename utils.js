@@ -4,6 +4,19 @@ module.exports = {
   },
 
   clone: function(obj) {
-    return JSON.parse(JSON.stringify(obj));
+    var parent = null, response = null;
+
+    // prevent circular loop when cloning the obj.
+    if (obj.parent) {
+      parent = obj.parent;
+      delete obj.parent;
+    }
+
+    response = JSON.parse(JSON.stringify(obj));
+
+    // keep original parent
+    if (parent) { obj.parent = parent; }
+
+    return response;
   }
 }

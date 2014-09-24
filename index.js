@@ -270,29 +270,41 @@ module.exports = function(code) {
       }
 
       var s = scope.create(node);
-      content += "\n{\n" + visit(node.body, node) + "\n}\n";
+      content += "\n{\n";
+      content += visit(node.body, node);
 
-      // define getters and setters
-      if (s.getters) {
+      if (s.getters.length > 0) {
+        content += "function __get($_property) {\n";
+        for (var i=0;i<s.getters.length;i++) {
+          console.log(s.getters[i].key.name, s.getters[i].value.body)
+          content += "if ($_property === '"+s.getters[i].key.name+"') {\n";
+          content += visit(s.getters[i].value.body, node);
+          content += "}\n";
+        }
+        content += "}\n";
       }
 
-      if (s.setters) {
+      if (s.setters.length > 0) {
+        content += "function __set($_property, $value) {\n";
+        for (var i=0;i<s.setters.length;i++) {
+          console.log(s.setters[i].key.name, s.setters[i].value.body)
+          content += "if ($_property === '"+s.setters[i].key.name+"') {\n";
+          content += visit(s.setters[i].value.body, node);
+          content += "}\n";
+        }
+        content += "}\n";
       }
+
+      content += "\n}\n";
 
 
     } else if (node.type == "MethodDefinition") {
-      var s = scope.get(node);
+      scope.get(node).register(node);
 
       // define getters and setters on scope
-      if (node.kind == "get") {
-        // scope.get(node).getters.push(node);
-        // return "";
-      } else if (node.kind == "set") {
-        // scope.get(node).setters.push(node);
-        // return "";
+      if (node.kind == "get" || node.kind == "set") {
+        return "";
       }
-
-      s.register(node);
 
       // every method is public.
       content = "public ";
@@ -397,15 +409,9 @@ module.exports = function(code) {
       content = "break;";
 
     } else if (node.type == "NewExpression") {
-      // prevent circular JSON when cloning the node.
-      var keepParent = node.parent;
-      delete node.parent;
-
       // re-use CallExpression for NewExpression's
       var newNode = utils.clone(node);
       newNode.type = "CallExpression";
-
-      node.parent = keepParent;
 
       return "new " + visit(newNode, node);
 

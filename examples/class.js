@@ -12,9 +12,12 @@ class ClassExample {
     return "Hello world";
   }
 
-  // TODO: getter / setter methods
   get something() {
     return "Something: " + this._something;
+  }
+
+  set something(value) {
+    this._something = value + 10;
   }
 
   creating(model) {
