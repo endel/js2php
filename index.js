@@ -176,7 +176,7 @@ module.exports = function(code) {
         var accessor;
         if (node.property.static && object.static) {
           accessor = "\\"; // namespace
-        } else if (object.static) {
+        } else if (property.static || object.static) {
           accessor = "::"; // static
         } else {
           accessor = "->"; // instance
@@ -276,7 +276,6 @@ module.exports = function(code) {
       if (s.getters.length > 0) {
         content += "function __get($_property) {\n";
         for (var i=0;i<s.getters.length;i++) {
-          console.log(s.getters[i].key.name, s.getters[i].value.body)
           content += "if ($_property === '"+s.getters[i].key.name+"') {\n";
           content += visit(s.getters[i].value.body, node);
           content += "}\n";
@@ -287,7 +286,6 @@ module.exports = function(code) {
       if (s.setters.length > 0) {
         content += "function __set($_property, $value) {\n";
         for (var i=0;i<s.setters.length;i++) {
-          console.log(s.setters[i].key.name, s.setters[i].value.body)
           content += "if ($_property === '"+s.setters[i].key.name+"') {\n";
           content += visit(s.setters[i].value.body, node);
           content += "}\n";
