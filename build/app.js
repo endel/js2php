@@ -122,7 +122,7 @@ $(function() {
   $('ul.dropdown-menu').on('click', 'a', function(e) {
     e.preventDefault();
     var example = $(this).text();
-    $.get('examples/' + example, function(text) {
+    $.get('examples/' + example + '.txt', function(text) {
       javascriptEditor.setValue(text);
     });
   });
