@@ -1,7 +1,7 @@
 js2php
 ===
 
-JavaScript to PHP source-to-source transpiler.
+JavaScript to PHP source-to-source transpiler.  [Online demo](http://endel.github.io/js2php)
 
 **This is an experiment. Please do not use it.**
 
