@@ -1,0 +1,48 @@
+@import 'twbs/bootstrap:dist/css/bootstrap.css';
+@import 'codemirror/CodeMirror:lib/codemirror.css';
+@import 'codemirror/CodeMirror:theme/tomorrow-night-eighties.css';
+@import 'FortAwesome/Font-Awesome:css/font-awesome.css';
+
+.CodeMirror {
+  height: 400px;
+  text-align: left;
+}
+
+h2 { text-align: left; }
+
+.btn-group { margin: 14px; }
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html { position: relative; min-height: 100%; }
+
+body {
+  text-align: center;
+
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+.container {
+  width: auto;
+  max-width: 1024px;
+  padding: 0 15px;
+}
+.container .text-muted {
+  margin: 20px 0;
+}
+
