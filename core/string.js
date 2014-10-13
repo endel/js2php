@@ -121,8 +121,10 @@ module.exports = {
 
   match: function(node) {
     var args = utils.clone(node.parent.arguments);
-    args.unshift(node.parent.callee.object);
+    args.push(node.parent.callee.object);
+
     args[0].raw = "'" + node.parent.arguments[0].raw + "'";
+    args[0].type = "Literal";
 
     node.parent.arguments = false;
 
@@ -132,7 +134,7 @@ module.exports = {
         type: 'Identifier',
         name: 'preg_match',
       },
-      arguments: [ args[0], node.parent.callee.object ]
+      arguments: args
     };
   },
 

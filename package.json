@@ -12,7 +12,9 @@
     "url": "https://github.com/endel/js2php.git"
   },
   "keywords": [ "javascript", "php", "transpiler", "transcompiler" ],
-  "devDependencies": {},
+  "devDependencies": {
+    "browserify": "~6.0.*"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

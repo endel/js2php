@@ -18,5 +18,9 @@ module.exports = {
     if (parent) { obj.parent = parent; }
 
     return response;
+  },
+
+  isString: function(node) {
+    return node.type == "Literal" && node.raw.match(/^['|"]/);
   }
 }

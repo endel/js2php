@@ -27,7 +27,14 @@ function Scope(root, parent) {
     var name = null;
 
     if (node.type == 'VariableDeclarator') {
+      var dataType = null;
       name = node.id.name;
+
+      if (node.init && utils.isString(node.init)) {
+        dataType = "String";
+      }
+
+      node.dataType = dataType;
 
     } else if (node.type == 'Identifier') {
       name = node.name;
