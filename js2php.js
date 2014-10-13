@@ -26,7 +26,9 @@ module.exports = {
 }
 
 },{"./core/array":2,"./core/date":3,"./core/function":4,"./core/json":5,"./core/math":6,"./core/string":7,"./utils":11}],2:[function(_dereq_,module,exports){
-var utils = _dereq_('../utils');
+var utils = _dereq_('../utils'),
+    scope = _dereq_('../scope');
+    string = _dereq_('./string');
 
 module.exports = {
 
@@ -123,24 +125,44 @@ module.exports = {
   },
 
   indexOf: function(node) {
-    var args = utils.clone(node.parent.arguments);
+    var method = "array_search",
+        args = utils.clone(node.parent.arguments);
+
     node.parent.arguments = false;
+
+    var targetDefinition = scope.get(node).getDefinition(node.parent.callee.object);
+    if (utils.isString(node.parent.callee.object) || (targetDefinition && targetDefinition.dataType == "String")) {
+      method = "strpos";
+      args = [ node.parent.callee.object, args[0] ];
+
+    } else {
+      args = [ args[0], node.parent.callee.object ];
+    }
 
     return {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
-        name: 'array_search',
+        name: method,
       },
-      arguments: [ args[0], node.parent.callee.object ]
+      arguments: args
     };
+
   },
 
   length: function(node) {
-    var object = (node.parent.callee && node.parent.callee.object) || node.object,
-        // TODO: identify data-types from "Identifier" types
-        isString = (object.type=='Literal' && object.raw.match(/^['|"]/)),
-        method = isString ? "strlen" : "count";
+    var method,
+        object = (node.parent.callee && node.parent.callee.object) || node.object,
+        isString = (object.type=='Literal' && object.raw.match(/^['|"]/));
+
+    var targetDefinition = scope.get(node).getDefinition(object);
+    if (utils.isString(object) || (targetDefinition && targetDefinition.dataType == "String")) {
+      method = "strlen";
+
+    } else {
+      method = "count";
+    }
+
 
     return {
       type: 'CallExpression',
@@ -154,7 +176,7 @@ module.exports = {
 
 }
 
-},{"../utils":11}],3:[function(_dereq_,module,exports){
+},{"../scope":10,"../utils":11,"./string":7}],3:[function(_dereq_,module,exports){
 module.exports = {
 
 }
@@ -466,8 +488,10 @@ module.exports = {
 
   match: function(node) {
     var args = utils.clone(node.parent.arguments);
-    args.unshift(node.parent.callee.object);
+    args.push(node.parent.callee.object);
+
     args[0].raw = "'" + node.parent.arguments[0].raw + "'";
+    args[0].type = "Literal";
 
     node.parent.arguments = false;
 
@@ -477,7 +501,7 @@ module.exports = {
         type: 'Identifier',
         name: 'preg_match',
       },
-      arguments: [ args[0], node.parent.callee.object ]
+      arguments: args
     };
   },
 
@@ -7363,7 +7387,14 @@ function Scope(root, parent) {
     var name = null;
 
     if (node.type == 'VariableDeclarator') {
+      var dataType = null;
       name = node.id.name;
+
+      if (node.init && utils.isString(node.init)) {
+        dataType = "String";
+      }
+
+      node.dataType = dataType;
 
     } else if (node.type == 'Identifier') {
       name = node.name;
@@ -7425,6 +7456,10 @@ module.exports = {
     if (parent) { obj.parent = parent; }
 
     return response;
+  },
+
+  isString: function(node) {
+    return node.type == "Literal" && node.raw.match(/^['|"]/);
   }
 }
 
