@@ -22,5 +22,22 @@ module.exports = {
 
   isString: function(node) {
     return node.type == "Literal" && node.raw.match(/^['|"]/);
+  },
+
+  isRegExp: function(node) {
+    var value = node.raw;
+
+    if (value.match(/^['"].+['"]$/)) {
+      value = value.substr(1, node.raw.length-2);
+    }
+
+    var isRegExp = value.match(/^\/[^\/]+\/[gimy]?$/);
+
+    if (isRegExp) {
+      node.raw.value = "'" + value + "'";
+      node.dataType = 'RegExp';
+    }
+
+    return isRegExp;
   }
 }
