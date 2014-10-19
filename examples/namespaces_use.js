@@ -1,4 +1,4 @@
-module 'math' {
+module 'math.formulas' {
 
   class Formula {
     constructor() {
@@ -21,6 +21,7 @@ module 'math' {
   export var pi = 3.141593;
 }
 
-import {Formula as Formula1, Hello} from 'math';
+// use Gregwar\Captcha\CaptchaBuilder;
+import {Formula as Formula1, Hello} from 'math.formulas';
 Formula1.do_something();
 Hello.do_something();

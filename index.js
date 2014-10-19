@@ -424,7 +424,7 @@ module.exports = function(code) {
 
       // Modules & Export (http://wiki.ecmascript.org/doku.php?id=harmony:modules_examples)
     } else if (node.type == "ModuleDeclaration") {
-      content = "namespace " + utils.capitaliseFirstLetter(node.id.value) + ";\n";
+      content = "namespace " + utils.classize(node.id.value) + ";\n";
       content += visit(node.body, node);
 
     } else if (node.type == "ExportDeclaration") {
@@ -436,7 +436,7 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "ImportSpecifier") {
-        var namespace = utils.capitaliseFirstLetter(node.parent.source.value);
+        var namespace = utils.classize(node.parent.source.value);
         content += "use \\" + namespace + "\\" + node.id.name;
 
         // alias
