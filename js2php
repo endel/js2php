@@ -4,7 +4,14 @@ var fs = require('fs'),
     js2php = require('./index.js');
 
 if (process.stdin.isTTY) {
-  console.log(  js2php(fs.readFileSync(process.argv[2]).toString()) );
+
+  if (process.argv[2]=="-v" || process.argv[2]=="--version") {
+    console.log(require('./package.json').version);
+
+  } else {
+    console.log(  js2php(fs.readFileSync(process.argv[2]).toString()) );
+  }
+
 } else {
   var code = "";
   process.stdin.resume();
