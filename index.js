@@ -136,6 +136,13 @@ module.exports = function(code) {
 
       content += visit(node.callee, node);
 
+      // inline anonymous call
+      if (node.callee.isCallee &&
+          node.callee.type == "FunctionDeclaration" &&
+          node.parent.type == "VariableDeclarator") {
+        content += ";$" + node.parent.id.name + " = " + "$" + node.parent.id.name;
+      }
+
       if (node.arguments) {
         var arguments = [];
 
