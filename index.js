@@ -280,7 +280,7 @@ module.exports = function(code) {
       content = "class " + node.id.name
 
       if (node.superClass) {
-        content += " extends " + node.superClass;
+        content += " extends " + node.superClass.name;
       }
 
       var s = scope.create(node);
