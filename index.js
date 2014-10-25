@@ -252,8 +252,8 @@ module.exports = function(code) {
       content = "array(" + elements.join(", ") + ")";
 
     } else if (node.type == "Property") {
-      var propertyKey = node.key.type == 'Identifier' ? node.key.name : node.key.value;
-      content = '"'+propertyKey+'" => ' + visit(node.value, node);
+      var property = (node.key.type == 'Identifier') ? node.key.name : node.key.value;
+      content = '"'+property+'" => ' + visit(node.value, node);
 
     } else if (node.type == "ReturnStatement") {
       semicolon = true;
