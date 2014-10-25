@@ -137,10 +137,16 @@ module.exports = function(code) {
       content += visit(node.callee, node);
 
       // inline anonymous call
-      if (node.callee.isCallee &&
-          node.callee.type == "FunctionDeclaration" &&
-          node.parent.type == "VariableDeclarator") {
-        content += ";$" + node.parent.id.name + " = " + "$" + node.parent.id.name;
+      if (node.callee.isCallee && node.callee.type == "FunctionDeclaration") {
+        var identifier = null;
+        if (node.parent.type == "VariableDeclarator") {
+          // var something = (function() { return 0; })();
+          identifier = node.parent.id.name;
+        } else if (node.parent.type == "AssignmentExpression") {
+          // something = (function() { return 0; })();
+          identifier = node.parent.left.name;
+        }
+        content += ";$" + identifier + " = " + "$" + identifier;
       }
 
       if (node.arguments) {
