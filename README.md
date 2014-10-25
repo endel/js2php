@@ -106,6 +106,15 @@ What does it converts?
     - Function.prototype.call
   - Date (missing)
 
+Testing
+---
+
+Tests are simple input (js) / output (php) comparisions.
+
+1. Create your source `.js` file at `test/fixtures/js_feature.js`
+2. Convert your `.js` to `.php` manually: `node test/generate.js js_feature.js`
+3. Run `npm test`
+
 License
 ---
 
