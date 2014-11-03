@@ -318,19 +318,32 @@ module.exports = function(code) {
         return "";
       }
 
-      // every method is public.
-      content = "public ";
-      if (node.static) { content += "static "; }
-
-      if (node.key.name == "constructor") {
-        node.key.name = "__construct";
-      }
+      var isConstructor = (node.key.name == "constructor");
+      if (isConstructor) { node.key.name = "__construct"; }
 
       // Re-use FunctionDeclaration structure for method definitions
       node.value.type = "FunctionDeclaration";
       node.value.id = { name: node.key.name };
 
-      content += visit(node.value, node);
+      var tmpContent = visit(node.value, node);
+
+      // try to define public properties there were defined on constructor
+      if (isConstructor) {
+        node.key.name = "__construct";
+        var definitions = scope.get(node.value).definitions;
+        for(var i in definitions) {
+          if (definitions[i] && definitions[i].type == "MemberExpression") {
+            definitions[i].property.isMemberExpression = false;
+            content += "public " + visit(definitions[i].property, null) + ";\n";
+          }
+        }
+      }
+
+      // every method is public.
+      content += "public ";
+      if (node.static) { content += "static "; }
+
+      content += tmpContent;
 
     } else if (node.type == "ThisExpression") {
       content = "$this";

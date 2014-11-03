@@ -1,6 +1,7 @@
 <?php
 class ClassExample
 {
+public $_something;
 public function __construct($something) {
 $this->_something = $something;
 }

@@ -1,11 +1,11 @@
 {
   "name": "js2php",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "JavaScript to PHP transpiler.",
   "main": "index.js",
   "bin": "js2php",
   "dependencies": {
-    "esprima-fb": "^7001.1.0-dev-harmony-fb"
+    "esprima-fb": "^5001.1.0-dev-harmony-fb"
   },
   "repository": {
     "type": "git",
