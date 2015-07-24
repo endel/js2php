@@ -29,15 +29,40 @@ $(function() {
   convert();
 
   // create examples
-  var examples = ['class.txt', 'closures.txt', 'conditionals.txt', 'core_array.txt', 'core_function.txt', 'core_json.txt', 'core_math.txt', 'core_string.txt', 'expression.txt', 'function.txt', 'loops.txt', 'namespaces.txt', 'namespaces_use.txt', 'simple.txt', 'static_call.txt'];
+  var examples = [
+    'class.js',
+    'class_inheritance.js',
+    'anonymous_function.js',
+    'arrow_functions.js',
+    'closures.js',
+    'conditionals.js',
+    'core_array.js',
+    'core_function.js',
+    'core_json.js',
+    'core_math.js',
+    'core_string.js',
+    'date.js',
+    'expression.js',
+    'for_of.js',
+    'function.js',
+    'function_super.js',
+    'loops.js',
+    'namespaces.js',
+    'namespaces_use.js',
+    'regexp.js',
+    'simple.js',
+    'static_call.js',
+    'string_template.js',
+  ];
+
   for(var i=0;i<examples.length;i++) {
-    $('ul.dropdown-menu').append('<li><a href="#">'+examples[i].replace(".txt", "")+'</a></li>');
+    $('ul.dropdown-menu').append('<li><a href="#">'+examples[i].replace(".js", "")+'</a></li>');
   }
 
   $('ul.dropdown-menu').on('click', 'a', function(e) {
     e.preventDefault();
     var example = $(this).text();
-    $.get('examples/' + example + '.txt', function(text) {
+    $.get('examples/' + example + '.js', function(text) {
       javascriptEditor.setValue(text);
     });
   });
