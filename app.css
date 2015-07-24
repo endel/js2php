@@ -1,7 +1,7 @@
-@import 'twbs/bootstrap:dist/css/bootstrap.css';
+@import 'twbs/bootstrap@v3.2.0:dist/css/bootstrap.css';
 @import 'codemirror/CodeMirror:lib/codemirror.css';
 @import 'codemirror/CodeMirror:theme/tomorrow-night-eighties.css';
-@import 'FortAwesome/Font-Awesome:css/font-awesome.css';
+@import 'FortAwesome/Font-Awesome@v4.2.0:css/font-awesome.css';
 
 .CodeMirror {
   height: 400px;
