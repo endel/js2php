@@ -68,7 +68,8 @@ module.exports = function(code) {
         content += ' = ' + visit(node.init, node);
         semicolon = true;
       } else if (node.parent.parent.type !== "ForInStatement" &&
-                 node.parent.parent.type !== "ForStatement") {
+                 node.parent.parent.type !== "ForStatement" &&
+                 node.parent.parent.type !== "ForOfStatement") {
         content += ' = null';
         semicolon = true;
       }
@@ -427,7 +428,7 @@ module.exports = function(code) {
       content += visit(node.body, node);
       content += "}";
 
-    } else if (node.type == "ForInStatement") {
+    } else if (node.type == "ForInStatement" || node.type == "ForOfStatement") {
       content = "foreach (" + visit(node.right, node) + " as " + visit(node.left, node)+ " => $___)";
       content += "{" + visit(node.body, node) + "}";
 
