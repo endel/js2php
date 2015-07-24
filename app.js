@@ -4,7 +4,7 @@ require('codemirror/CodeMirror:mode/javascript/javascript.js');
 
 window.jQuery = require('jquery/jquery:dist/jquery.js');
 window.$ = jQuery;
-require('twbs/bootstrap:dist/js/bootstrap.js');
+require('twbs/bootstrap@v3.2.0:dist/js/bootstrap.js');
 
 var js2php = require('./js2php.js');
 
