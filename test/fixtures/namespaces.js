@@ -1,19 +1,16 @@
-module 'math' {
-
-  class Formula {
-    constructor() {
-    }
-
-    static do_something() {
-      var_dump("Something!")
-    }
+export class Formula {
+  constructor() {
   }
 
-  class Hello {
+  static do_something() {
+    var_dump("Something!")
   }
-
-  export function sum(x, y) {
-    return x + y;
-  }
-  export var pi = 3.141593;
 }
+
+export class Hello {
+}
+
+export function sum(x, y) {
+  return x + y;
+}
+export var pi = 3.141593;

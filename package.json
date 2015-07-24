@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "js2php",
   "dependencies": {
-    "espree": "~1.10.0"
+    "espree": "~2.2.3"
   },
   "repository": {
     "type": "git",

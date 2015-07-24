@@ -1,5 +1,4 @@
 <?php
-namespace Math;
 class Formula
 {
 public function __construct() {

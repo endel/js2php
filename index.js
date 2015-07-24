@@ -28,8 +28,13 @@ module.exports = function(code) {
       objectLiteralDuplicateProperties: true, // Allow duplicate object literal properties (except '__proto__')
       generators: true, // enable parsing of generators/yield
       spread: true, // enable parsing spread operator
+      superInFunctions: true, // enable super in functions
       classes: true, // enable parsing classes
-      globalReturn: true // enable return in global scope
+      newTarget: false, // enable parsing of new.target
+      modules: true, // enable parsing of modules
+      jsx: true, // enable React JSX parsing
+      globalReturn: true, // enable return in global scope
+      experimentalObjectRestSpread: true // allow experimental object rest/spread
     }
   });
 
@@ -107,10 +112,11 @@ module.exports = function(code) {
         content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
       }
 
-    } else if (node.type == "AssignmentExpression") {
+    } else if (node.type == "AssignmentExpression" ||
+               node.type == "AssignmentPattern") {
       scope.get(node).register(node.left);
 
-      content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
+      content = visit(node.left, node) + " " + (node.operator || "=") + " " + visit(node.right, node);
 
     } else if (node.type == "ConditionalExpression") {
       content = "(" + visit(node.test, node) + ")" +
@@ -159,7 +165,8 @@ module.exports = function(code) {
       content += visit(node.callee, node);
 
       // inline anonymous call
-      if (node.callee.isCallee && node.callee.type == "FunctionDeclaration") {
+      if ((node.callee.isCallee && node.callee.type == "FunctionDeclaration") ||
+           node.type == "ArrowFunctionExpression") {
         var identifier = null;
         if (node.parent.type == "VariableDeclarator") {
           // var something = (function() { return 0; })();
@@ -211,7 +218,7 @@ module.exports = function(code) {
         var accessor;
         if (node.property.static && object.static) {
           accessor = "\\"; // namespace
-        } else if (property.static || object.static) {
+        } else if ((property.static || object.static) || object.type == "Super") {
           accessor = "::"; // static
         } else {
           accessor = "->"; // instance
@@ -225,7 +232,8 @@ module.exports = function(code) {
         }
       }
 
-    } else if (node.type == "FunctionDeclaration") {
+    } else if (node.type == "FunctionDeclaration" ||
+               node.type == "ArrowFunctionExpression") {
       var param,
           parameters = [],
           defaults = node.defaults || [];
@@ -257,7 +265,7 @@ module.exports = function(code) {
       var func_contents = visit(node.body, node),
           using = scope.get(node).using;
 
-      content = "function " + node.id.name;
+      content = "function " + ((node.id) ? node.id.name : "");
       content += "(" + parameters.join(", ") + ") ";
 
       // try to use parent's variables
@@ -299,7 +307,7 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "ClassDeclaration") {
-      content = "class " + node.name.name
+      content = "class " + node.id.name
 
       if (node.superClass) {
         content += " extends " + node.superClass.name;
@@ -369,6 +377,9 @@ module.exports = function(code) {
 
     } else if (node.type == "ThisExpression") {
       content = "$this";
+
+    } else if (node.type == "Super") {
+      content = "parent";
 
     } else if (node.type == "IfStatement") {
       content = "if ("+visit(node.test, node)+") {\n";
@@ -476,7 +487,7 @@ module.exports = function(code) {
       content = "namespace " + utils.classize(node.id.value) + ";\n";
       content += visit(node.body, node);
 
-    } else if (node.type == "ExportDeclaration") {
+    } else if (node.type == "ExportNamedDeclaration") {
       content = visit(node.declaration, node);
 
     } else if (node.type == "ImportDeclaration") {
@@ -486,12 +497,30 @@ module.exports = function(code) {
 
     } else if (node.type == "ImportSpecifier") {
         var namespace = utils.classize(node.parent.source.value);
-        content += "use \\" + namespace + "\\" + node.id.name;
+        content += "use \\" + namespace + "\\" + node.imported.name;
 
         // alias
-        if (node.name) { content += " as " + node.name.name; }
+        if (node.local) { content += " as " + node.local.name; }
 
         content += ";\n";
+
+    } else if (node.type == "TemplateLiteral") {
+      var expressions = node.expressions
+        , quasis = node.quasis
+        , nodes = quasis.concat(expressions).sort(function(a, b) {
+            return b.range[0] < a.range[0];
+          })
+        , cooked = "";
+
+      for (var i=0; i<nodes.length; i++) {
+        if (nodes[i].type == "TemplateElement") {
+          cooked += nodes[i].value.cooked;
+        } else {
+          cooked += '{' + visit(nodes[i], node) + '}';
+        }
+      }
+
+      content += '"' + cooked + '"';
 
     } else {
       console.log("'" + node.type + "' not implemented.", node);
