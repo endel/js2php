@@ -37,7 +37,9 @@ What does it converts?
 - Classes (ES6)
 - Getters and Setters (ES6)
 - Namespaces (ES6)
-- Loops (while / for / do-while)
+- Loops (while / for / do-while / for-of / for-in)
+- Arrow functions (ES6)
+- Template strings (ES6)
 - Functions and closures
 - Conditionals
 - [Core JavaScript](core)
