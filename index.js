@@ -278,7 +278,12 @@ module.exports = function(code) {
       }
 
       content += "{\n";
-      content += func_contents;
+      if (node.body.type === 'BinaryExpression') {
+        // x => x * 2
+        content += "return " + func_contents + ";\n";
+      } else {
+        content += func_contents;
+      }
       content += "}\n";
 
     } else if (node.type == "ObjectExpression") {
