@@ -114,7 +114,7 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "AssignmentExpression" ||
-               node.type == "AssignmentPattern") {
+      node.type == "AssignmentPattern") {
       scope.get(node).register(node.left);
 
       content = visit(node.left, node) + " " + (node.operator || "=") + " " + visit(node.right, node);
@@ -163,7 +163,11 @@ module.exports = function(code) {
       node.callee.isCallee = (!calleeDefined || calleeDefined && (calleeDefined.type != "Identifier" &&
                                                                   calleeDefined.type != "VariableDeclarator"));
 
-      content += visit(node.callee, node);
+      if (node.callee.type === 'Super') {
+        content += 'parent::__construct';
+      } else {
+        content += visit(node.callee, node);
+      }
 
       // inline anonymous call
       if ((node.callee.isCallee && node.callee.type == "FunctionDeclaration") ||
