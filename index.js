@@ -68,8 +68,8 @@ module.exports = function(code) {
         content += ' = ' + visit(node.init, node);
         semicolon = true;
       } else if (node.parent.parent.type !== "ForInStatement" &&
-                 node.parent.parent.type !== "ForStatement" &&
-                 node.parent.parent.type !== "ForOfStatement") {
+        node.parent.parent.type !== "ForStatement" &&
+        node.parent.parent.type !== "ForOfStatement") {
         content += ' = null';
         semicolon = true;
       }
@@ -137,7 +137,7 @@ module.exports = function(code) {
           arguments: [node.argument]
         }, node);
 
-      // override delete unary expression
+        // override delete unary expression
       } else if (node.operator == 'delete') {
         content = visit({
           type: 'CallExpression',
@@ -161,7 +161,7 @@ module.exports = function(code) {
       var calleeDefined = scope.get(node).getDefinition(node.callee);
 
       node.callee.isCallee = (!calleeDefined || calleeDefined && (calleeDefined.type != "Identifier" &&
-                                                                  calleeDefined.type != "VariableDeclarator"));
+        calleeDefined.type != "VariableDeclarator"));
 
       if (node.callee.type === 'Super') {
         content += 'parent::__construct';
@@ -171,7 +171,7 @@ module.exports = function(code) {
 
       // inline anonymous call
       if ((node.callee.isCallee && node.callee.type == "FunctionDeclaration") ||
-           node.type == "ArrowFunctionExpression") {
+        node.type == "ArrowFunctionExpression") {
         var identifier = null;
         if (node.parent.type == "VariableDeclarator") {
           // var something = (function() { return 0; })();
@@ -211,7 +211,7 @@ module.exports = function(code) {
 
         if (node.object.type == "MemberExpression" && node.object.object && node.object.property) {
           object = node.object.object,
-          property = node.object.property;
+            property = node.object.property;
         } else {
           object = node.object;
           property = node.property;
@@ -238,10 +238,10 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "FunctionDeclaration" ||
-               node.type == "ArrowFunctionExpression") {
+      node.type == "ArrowFunctionExpression") {
       var param,
-          parameters = [],
-          defaults = node.defaults || [];
+        parameters = [],
+        defaults = node.defaults || [];
 
       // function declaration creates a new scope
       scope.create(node);
@@ -268,7 +268,7 @@ module.exports = function(code) {
       }
 
       var func_contents = visit(node.body, node),
-          using = scope.get(node).using;
+        using = scope.get(node).using;
 
       content = "function " + ((node.id) ? node.id.name : "");
       content += "(" + parameters.join(", ") + ") ";
@@ -506,20 +506,20 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "ImportSpecifier") {
-        var namespace = utils.classize(node.parent.source.value);
-        content += "use \\" + namespace + "\\" + node.imported.name;
+      var namespace = utils.classize(node.parent.source.value);
+      content += "use \\" + namespace + "\\" + node.imported.name;
 
-        // alias
-        if (node.local) { content += " as " + node.local.name; }
+      // alias
+      if (node.local) { content += " as " + node.local.name; }
 
-        content += ";\n";
+      content += ";\n";
 
     } else if (node.type == "TemplateLiteral") {
       var expressions = node.expressions
         , quasis = node.quasis
         , nodes = quasis.concat(expressions).sort(function(a, b) {
-            return b.range[0] < a.range[0];
-          })
+          return b.range[0] < a.range[0];
+        })
         , cooked = "";
 
       for (var i=0; i<nodes.length; i++) {
@@ -532,6 +532,31 @@ module.exports = function(code) {
 
       content += '"' + cooked + '"';
 
+    } else if (node.type === "TryStatement") {
+      content += "try {\n";
+      content += visit(node.block, node);
+      content += "}";
+
+      if (node.handler) {
+        content += visit(node.handler, node);
+      }
+
+      if (node.finalizer) {
+        content += " finally {\n";
+        content += visit(node.finalizer, node);
+	      content += "}\n";
+      }
+
+    } else if (node.type === "CatchClause") {
+      content += ' catch (Exception ';
+      scope.create(node.param, node);
+      content += visit(node.param, node);
+      content += ") {\n";
+      content += visit(node.body, node);
+      content += "}\n";
+    } else if (node.type === "ThrowStatement") {
+      content += "throw " + visit(node.argument, node);
+      semicolon = true;
     } else {
       console.log("'" + node.type + "' not implemented.", node);
     }
