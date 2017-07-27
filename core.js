@@ -4,7 +4,8 @@ var utils = require('./utils'),
     _function = require('./core/function'),
     _json = require('./core/json'),
     _string = require('./core/string'),
-    _math = require('./core/math');
+    _math = require('./core/math'),
+    _number = require('./core/number');
 
 module.exports = {
 
@@ -17,7 +18,7 @@ module.exports = {
     //   return { type: 'CallExpression', callee: { type: 'Identifier', name: 'isset', }, arguments: args };
     // }
 
-    var handler = _array[method] || _date[method] || _function[method] || _json[method] || _string[method] || _math[method];
+    var handler = _array[method] || _date[method] || _function[method] || _json[method] || _string[method] || _math[method] || _number[method];
 
     return (handler) ? handler(node) : node;
   }
