@@ -9,6 +9,10 @@ echo(rtrim("trimmed    "));
 echo(substr(strtoupper($str), 1));
 echo(strtolower($str));
 echo(substr($str, 1));
+$replace_stuff = 'say Hello';
+echo(str_replace($str, 'Goodnight', $replace_stuff));
+$replace_stuff2 = 'say Hello';
+echo(str_replace('say', $str, $replace_stuff2));
 if (preg_match('/endel/', $str)) {
 var_dump($str);
 }

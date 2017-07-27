@@ -95,6 +95,9 @@ What does it converts?
     - Math.sqrt
     - Math.tan
     - Math.tanh
+  - Number
+    - Number.isInteger
+    - Number.isFinite
   - String
     - String.prototype.replace
     - String.prototype.trim
