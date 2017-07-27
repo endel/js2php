@@ -13,7 +13,7 @@ module.exports = {
 
     node.parent.arguments = false;
 
-    if(utils.isString(args[0])){
+    if(args[0].type !== 'Identifier'){
       var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
           regex = regexpData && regexpData[1],
           flags = regexpData && regexpData[2] || "",
