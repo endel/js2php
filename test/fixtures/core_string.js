@@ -13,6 +13,9 @@ echo(str.toUpperCase().substr(1));
 echo(str.toLowerCase());
 echo(str.substr(1));
 
+var replace_stuff = 'say Hello';
+echo(replace_stuff.replace(str, 'Goodnight'))
+
 if (str.match(/endel/)) {
   var_dump(str);
 }

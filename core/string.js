@@ -13,21 +13,23 @@ module.exports = {
 
     node.parent.arguments = false;
 
-    var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
-        regex = regexpData && regexpData[1],
-        flags = regexpData && regexpData[2] || "",
-        isGroup = flags.indexOf('g') >= 0;
+    if(utils.isString(args[0])){
+      var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
+          regex = regexpData && regexpData[1],
+          flags = regexpData && regexpData[2] || "",
+          isGroup = flags.indexOf('g') >= 0;
 
-    // check for RegExp for preg_replace
-    if (regexpData) {
-      method = "preg_replace";
-      args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
-      args[0].type = "Literal";
+      // check for RegExp for preg_replace
+      if (regexpData) {
+        method = "preg_replace";
+        args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
+        args[0].type = "Literal";
 
-      // fill '$limit' param with only 1 replacement
-      // http://php.net/manual/en/function.preg-replace.php
-      if (!isGroup) {
-        args.push({ type: 'Literal', value: 1, raw: '1' });
+        // fill '$limit' param with only 1 replacement
+        // http://php.net/manual/en/function.preg-replace.php
+        if (!isGroup) {
+          args.push({ type: 'Literal', value: 1, raw: '1' });
+        }
       }
     }
 
