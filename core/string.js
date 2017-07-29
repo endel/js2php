@@ -109,7 +109,7 @@ module.exports = {
   },
 
   split: function(node) {
-    var method = "split";
+    var method = "explode";
     var args = utils.clone(node.parent.arguments);
     args.push(node.parent.callee.object);
 
@@ -124,6 +124,11 @@ module.exports = {
       method = "preg_split";
       args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
       args[0].type = "Literal";
+    }
+    // If splitting with a blank delimiter, use str_split.
+    else if (args[0].value === '') {
+      method = "str_split";
+      args = [args[1]];
     }
 
     return {

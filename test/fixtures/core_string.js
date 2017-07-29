@@ -21,6 +21,15 @@ echo(replace_stuff.replace(str, 'Goodnight'));
 var replace_stuff2 = 'say Hello';
 echo(replace_stuff2.replace('say', str));
 
+// test explode
+var strArray = str.split('ll');
+echo(strArray[0]);
+
+// test str_split
+var strArray2 = str.split('');
+echo(strArray2[0]);
+
+
 if (str.match(/endel/)) {
   var_dump(str);
 }
