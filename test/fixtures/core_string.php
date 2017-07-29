@@ -13,6 +13,8 @@ $replace_stuff = 'say Hello';
 echo(str_replace($str, 'Goodnight', $replace_stuff));
 $replace_stuff2 = 'say Hello';
 echo(str_replace('say', $str, $replace_stuff2));
+$strArray = explode('ll', $str);
+echo($strArray[0]);
 if (preg_match('/endel/', $str)) {
 var_dump($str);
 }

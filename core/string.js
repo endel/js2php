@@ -109,7 +109,7 @@ module.exports = {
   },
 
   split: function(node) {
-    var method = "split";
+    var method = "explode";
     var args = utils.clone(node.parent.arguments);
     args.push(node.parent.callee.object);
 
