@@ -15,6 +15,8 @@ $replace_stuff2 = 'say Hello';
 echo(str_replace('say', $str, $replace_stuff2));
 $strArray = explode('ll', $str);
 echo($strArray[0]);
+$strArray2 = str_split($str);
+echo($strArray2[0]);
 if (preg_match('/endel/', $str)) {
 var_dump($str);
 }
