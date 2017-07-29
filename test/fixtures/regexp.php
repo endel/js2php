@@ -3,7 +3,7 @@ $one = preg_match('/llo/', "Hello");
 var_dump($one);
 $two = preg_match_all('/llo/', "Hello");
 var_dump($two);
-$splitted = split(",", "one, two, three");
+$splitted = explode(",", "one, two, three");
 var_dump($splitted);
 $splitted = preg_split('/,/', "one, two, three");
 var_dump($splitted);
