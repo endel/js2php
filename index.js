@@ -286,7 +286,6 @@ module.exports = function (code) {
 
       content += "{\n";
       if (using.length > 0 && node.type === 'FunctionDeclaration') {
-        console.log(using, node)
         content += using.map(function (identifier) {
           return "global $" + identifier;
         }).join('\n');
