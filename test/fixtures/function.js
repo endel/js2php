@@ -11,7 +11,13 @@ function hello(a, b) {
   return "hello!";
 }
 
-var_dump(hello.apply(hello, [5,6]))
-var_dump(hello(5, 6))
+let total = 0
+function add(x) {
+  total += x
+}
 
-// var_dump(something(5), sum(1,2))
+var_dump(hello.apply(hello, [5, 6]))
+var_dump(hello(5, 6))
+add(1);
+add(2);
+var_dump($total);
