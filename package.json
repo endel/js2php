@@ -11,11 +11,16 @@
     "type": "git",
     "url": "https://github.com/endel/js2php.git"
   },
-  "keywords": [ "javascript", "php", "transpiler", "transcompiler" ],
+  "keywords": [
+    "javascript",
+    "php",
+    "transpiler",
+    "transcompiler"
+  ],
   "devDependencies": {
-    "browserify": "~6.0.*",
-    "mocha": "~2.0.1",
-    "assert": "~1.1.2"
+    "browserify": "~16.2.2",
+    "mocha": "~5.2.0",
+    "assert": "~1.4.1"
   },
   "scripts": {
     "test": "mocha ./test/suite.js"
