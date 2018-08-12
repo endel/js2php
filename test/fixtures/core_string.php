@@ -17,6 +17,9 @@ $strArray = explode('ll', $str);
 echo($strArray[0]);
 $strArray2 = str_split($str);
 echo($strArray2[0]);
+var_dump(strlen('testing'));
+$test_length = 'testing_string_variable';
+var_dump(strlen($test_length));
 if (preg_match('/endel/', $str)) {
 var_dump($str);
 }

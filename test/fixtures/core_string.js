@@ -29,7 +29,14 @@ echo(strArray[0]);
 var strArray2 = str.split('');
 echo(strArray2[0]);
 
+var_dump('testing'.length);
+
+test_length = 'testing_string_variable';
+var_dump(test_length.length);
+
 
 if (str.match(/endel/)) {
   var_dump(str);
 }
+
+

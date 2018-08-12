@@ -125,16 +125,23 @@ module.exports = {
   length: function(node) {
     var method,
         object = (node.parent.callee && node.parent.callee.object) || node.object,
-        isString = (object.type=='Literal' && object.raw.match(/^['|"]/));
+        isString = utils.isString(object);
 
     var targetDefinition = scope.get(node).getDefinition(object);
-    if (utils.isString(object) || (targetDefinition && targetDefinition.dataType == "String")) {
-      method = "strlen";
 
+    if (!isString && targetDefinition) {
+      if (targetDefinition.dataType == "String") {
+        isString = true;
+      } else if(targetDefinition.type == "Identifier" && targetDefinition.parent.type == "AssignmentExpression") {
+        isString = utils.isString(targetDefinition.parent.right);
+      }
+    }
+
+    if (isString || (targetDefinition && targetDefinition.dataType == "String")) {
+      method = "strlen";
     } else {
       method = "count";
     }
-
 
     return {
       type: 'CallExpression',
