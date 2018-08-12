@@ -13,3 +13,6 @@ var_dump(str_replace("y", "llo", "hey"));
 var_dump(preg_replace('/y/', "llo", "hey", 1));
 var_dump(preg_replace('/y/', "llo", "hey hey hey", 1));
 var_dump(preg_replace('/y/', "llo", "hey hey hey"));
+$string = 'hello';
+$regex = 'ello';
+$nonliteral = preg_match($regex, $string);

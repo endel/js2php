@@ -111,7 +111,8 @@ What does it converts?
   - Function
     - Function.prototype.apply
     - Function.prototype.call
-  - Date (missing)
+  - Date
+    - Date.now
 
 Testing
 ---
