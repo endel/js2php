@@ -31,8 +31,18 @@ echo(strArray2[0]);
 
 var_dump('testing'.length);
 
-test_length = 'testing_string_variable';
+var test_length = 'testing_string_variable';
 var_dump(test_length.length);
+
+function lengthTest1(string) {
+  var_dump(string.length);
+}
+function lengthTest2(string) {
+  var_dump(string.length);
+}
+lengthTest1('hmm');
+var temp = 'hmmm';
+lengthTest2(temp);
 
 
 if (str.match(/endel/)) {
