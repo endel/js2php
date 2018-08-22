@@ -44,7 +44,6 @@ lengthTest1('hmm');
 var temp = 'hmmm';
 lengthTest2(temp);
 
-
 if (str.match(/endel/)) {
   var_dump(str);
 }
