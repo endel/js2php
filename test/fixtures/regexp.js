@@ -17,3 +17,7 @@ var_dump("hey".replace("y", "llo"));
 var_dump("hey".replace(/y/, "llo"));
 var_dump("hey hey hey".replace(/y/, "llo"));
 var_dump("hey hey hey".replace(/y/g, "llo"));
+
+var string = 'hello';
+var regex = 'ello';
+var nonliteral = string.match(regex);

@@ -161,17 +161,21 @@ module.exports = {
     var args = utils.clone(node.parent.arguments);
     args.push(node.parent.callee.object);
 
-    var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
-        regex = regexpData && regexpData[1],
-        flags = regexpData && regexpData[2] || "",
-        isGroup = flags.indexOf('g') >= 0;
+    if(args[0].type === 'Literal') {
 
-    // remove unsupported /g from regexp, to use preg_match_all
-    if (isGroup) { flags = flags.replace("g", ""); }
-    regex = "/" + regex + "/" + flags;
+      var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
+          regex = regexpData && regexpData[1],
+          flags = regexpData && regexpData[2] || "",
+          isGroup = flags.indexOf('g') >= 0;
 
-    args[0].raw = "'" + regex + "'";
-    args[0].type = "Literal";
+      // remove unsupported /g from regexp, to use preg_match_all
+      if (isGroup) { flags = flags.replace("g", ""); }
+      regex = "/" + regex + "/" + flags;
+
+      args[0].raw = "'" + regex + "'";
+      args[0].type = "Literal";
+
+    }
 
     node.parent.arguments = false;
 
@@ -183,6 +187,7 @@ module.exports = {
       },
       arguments: args
     };
+
   },
 
 }
