@@ -110,6 +110,18 @@ module.exports = function(code) {
         }, node);
 
       } else {
+
+        // test for two strings.
+        var leftDefinition = scope.get(node).getDefinition(node.left);
+        var rightDefinition = scope.get(node).getDefinition(node.right);
+
+        if (leftDefinition && rightDefinition) {
+          if (leftDefinition.type == "VariableDeclarator" && rightDefinition.type == "VariableDeclarator") {
+            if (utils.isString(leftDefinition.init) && utils.isString(rightDefinition.init)) {
+              node.operator = node.operator.replace('+', '.');
+            }
+          }
+        }
         content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
       }
 
