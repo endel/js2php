@@ -125,8 +125,7 @@ module.exports = function(code) {
         content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
       }
 
-    } else if (node.type == "AssignmentExpression" ||
-      node.type == "AssignmentPattern") {
+    } else if (node.type == "AssignmentExpression" || node.type == "AssignmentPattern") {
       scope.get(node).register(node.left);
 
       content = visit(node.left, node) + " " + (node.operator || "=") + " " + visit(node.right, node);
@@ -165,7 +164,22 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "ExpressionStatement") {
-      content = visit(node.expression, node);
+      var iife = "";
+
+      var isIIFE = (
+        node.expression.type === "CallExpression" && (
+          node.expression.callee.type === "FunctionExpression" ||
+          node.expression.callee.type === "ArrowFunctionExpression"
+        )
+      );
+
+      // IIFE
+      if (isIIFE) {
+        node.expression.isIIFE = true;
+        iife = "call_user_func(";
+      }
+
+      content = iife + visit(node.expression, node);
       semicolon = true;
 
     } else if (node.type == "CallExpression") {
@@ -182,8 +196,10 @@ module.exports = function(code) {
       }
 
       // inline anonymous call
-      if ((node.callee.isCallee && node.callee.type == "FunctionDeclaration") ||
-        node.type == "ArrowFunctionExpression") {
+      if (
+        (node.callee.isCallee && node.callee.type == "FunctionDeclaration") ||
+        node.type == "ArrowFunctionExpression"
+      ) {
         var identifier = null;
         if (node.parent.type == "VariableDeclarator") {
           // var something = (function() { return 0; })();
@@ -202,7 +218,12 @@ module.exports = function(code) {
           arguments.push( visit(node.arguments[i], node) );
         }
 
-        content += "(" + arguments.join(', ') + ")";
+        if (node.isIIFE) {
+          content += ", [" + arguments.join(', ') + "])";
+
+        } else {
+          content += "(" + arguments.join(', ') + ")";
+        }
       }
 
       // allow semicolon if parent node isn't MemberExpression or Property
