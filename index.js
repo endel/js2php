@@ -219,7 +219,7 @@ module.exports = function(code) {
         }
 
         if (node.isIIFE) {
-          content += ", [" + arguments.join(', ') + "])";
+          content += ", " + arguments.join(', ') + ")";
 
         } else {
           content += "(" + arguments.join(', ') + ")";

@@ -1,6 +1,6 @@
-(() => {
-    var_dump("Hello");
-    (() => {
-        var_dump("world!");
-    })();
-})();
+((arg1) => {
+    var_dump(arg1);
+    ((arg2) => {
+        var_dump(arg2);
+    })("world!");
+})("Hello");
