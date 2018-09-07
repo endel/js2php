@@ -30,7 +30,7 @@ for(var i=0;i<fixtures.length;i++) {
       fs.writeFileSync(output, js2php(fs.readFileSync(file).toString()));
       console.log("OK: " + output);
     } catch (e) {
-      console.log("FAILED: " + file + " => '" + e.message + "'");
+      console.log("FAILED: " + file + " => '" + e.message + "'", e.stack);
     }
   }
 }

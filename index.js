@@ -287,13 +287,21 @@ module.exports = function(code) {
 
       // try to use parent's variables
       // http://php.net/manual/pt_BR/functions.anonymous.php
-      if (using.length > 0) {
+      if (using.length > 0 && node.parent.type !== "Program") {
         content += "use (" + using.map(function(identifier) {
           return "&$" + identifier;
         }).join(', ') + ") ";
       }
 
       content += "{\n";
+
+      // workaround when scope doesn't allow to have the `use` keyword.
+      if (node.parent.type === "Program") {
+        content += using.map(function(identifier) {
+          return `global $${identifier};`;
+        }).join("\n");
+      }
+
       if (node.body.type === 'BinaryExpression') {
         // x => x * 2
         content += "return " + func_contents + ";\n";
