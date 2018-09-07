@@ -1,14 +1,14 @@
 var core = require('./core'),
-    scope = require('./scope'),
-    utils = require('./utils'),
-    espree = require('espree');
+  scope = require('./scope'),
+  utils = require('./utils'),
+  espree = require('espree');
 
-module.exports = function(code) {
+module.exports = function (code) {
   var ast = espree.parse(code, {
-    loc : true,
-    range : true,
-    tokens : true,
-    comment : true,
+    loc: true,
+    range: true,
+    tokens: true,
+    comment: true,
     ecmaFeatures: {
       arrowFunctions: true, // enable parsing of arrow functions
       blockBindings: true, // enable parsing of let/const
@@ -48,13 +48,13 @@ module.exports = function(code) {
 
     if (node.type == "Program" || node.type == "BlockStatement" || node.type == "ClassBody") {
 
-      for (var i=0,length = node.body.length;i<length;i++) {
+      for (var i = 0, length = node.body.length; i < length; i++) {
         content += visit(node.body[i], node);
       }
 
     } else if (node.type == "VariableDeclaration") {
       // declaration of one or multiple variables
-      for (var i=0,length=node.declarations.length;i<length;i++) {
+      for (var i = 0, length = node.declarations.length; i < length; i++) {
         content += visit(node.declarations[i], node);
       }
 
@@ -183,8 +183,10 @@ module.exports = function(code) {
 
       // inline anonymous call
       if ((node.callee.isCallee && node.callee.type == "FunctionDeclaration") ||
-        node.type == "ArrowFunctionExpression") {
+        node.type == "ArrowFunctionExpression" || node.type === "FunctionExpression") {
         var identifier = null;
+        node.id = { name: node.id || "" };
+
         if (node.parent.type == "VariableDeclarator") {
           // var something = (function() { return 0; })();
           identifier = node.parent.id.name;
@@ -198,8 +200,8 @@ module.exports = function(code) {
       if (node.arguments) {
         var arguments = [];
 
-        for (var i=0, length = node.arguments.length; i < length; i++) {
-          arguments.push( visit(node.arguments[i], node) );
+        for (var i = 0, length = node.arguments.length; i < length; i++) {
+          arguments.push(visit(node.arguments[i], node));
         }
 
         content += "(" + arguments.join(', ') + ")";
@@ -250,6 +252,7 @@ module.exports = function(code) {
       }
 
     } else if (node.type == "FunctionDeclaration" ||
+      node.type === 'FunctionExpression' ||
       node.type == "ArrowFunctionExpression") {
       var param,
         parameters = [],
@@ -259,7 +262,7 @@ module.exports = function(code) {
       scope.create(node);
 
       // compute function params
-      for (var i=0; i < node.params.length; i++) {
+      for (var i = 0; i < node.params.length; i++) {
         if (defaults[i]) {
           param = visit({
             type: "BinaryExpression",
@@ -287,13 +290,19 @@ module.exports = function(code) {
 
       // try to use parent's variables
       // http://php.net/manual/pt_BR/functions.anonymous.php
-      if (using.length > 0) {
-        content += "use (" + using.map(function(identifier) {
+      if (using.length > 0 && node.type !== 'FunctionDeclaration') {
+        content += "use (" + using.map(function (identifier) {
           return "&$" + identifier;
         }).join(', ') + ") ";
       }
 
       content += "{\n";
+      if (using.length > 0 && node.type === 'FunctionDeclaration') {
+        content += using.map(function (identifier) {
+          return "global $" + identifier;
+        }).join('\n');
+      }
+
       if (node.body.type === 'BinaryExpression') {
         // x => x * 2
         content += "return " + func_contents + ";\n";
@@ -304,21 +313,21 @@ module.exports = function(code) {
 
     } else if (node.type == "ObjectExpression") {
       var properties = [];
-      for (var i=0; i < node.properties.length; i++) {
-        properties.push( visit(node.properties[i], node) )
+      for (var i = 0; i < node.properties.length; i++) {
+        properties.push(visit(node.properties[i], node))
       }
       content = "array(" + properties.join(", ") + ")";
 
     } else if (node.type == "ArrayExpression") {
       var elements = [];
-      for (var i=0; i < node.elements.length; i++) {
-        elements.push( visit(node.elements[i], node) )
+      for (var i = 0; i < node.elements.length; i++) {
+        elements.push(visit(node.elements[i], node))
       }
       content = "array(" + elements.join(", ") + ")";
 
     } else if (node.type == "Property") {
       var property = (node.key.type == 'Identifier') ? node.key.name : node.key.value;
-      content = '"'+property+'" => ' + visit(node.value, node);
+      content = '"' + property + '" => ' + visit(node.value, node);
 
     } else if (node.type == "ReturnStatement") {
       semicolon = true;
@@ -341,8 +350,8 @@ module.exports = function(code) {
 
       if (s.getters.length > 0) {
         content += "function __get($_property) {\n";
-        for (var i=0;i<s.getters.length;i++) {
-          content += "if ($_property === '"+s.getters[i].key.name+"') {\n";
+        for (var i = 0; i < s.getters.length; i++) {
+          content += "if ($_property === '" + s.getters[i].key.name + "') {\n";
           content += visit(s.getters[i].value.body, node);
           content += "}\n";
         }
@@ -351,8 +360,8 @@ module.exports = function(code) {
 
       if (s.setters.length > 0) {
         content += "function __set($_property, $value) {\n";
-        for (var i=0;i<s.setters.length;i++) {
-          content += "if ($_property === '"+s.setters[i].key.name+"') {\n";
+        for (var i = 0; i < s.setters.length; i++) {
+          content += "if ($_property === '" + s.setters[i].key.name + "') {\n";
           content += visit(s.setters[i].value.body, node);
           content += "}\n";
         }
@@ -383,7 +392,7 @@ module.exports = function(code) {
       if (isConstructor) {
         node.key.name = "__construct";
         var definitions = scope.get(node.value).definitions;
-        for(var i in definitions) {
+        for (var i in definitions) {
           if (definitions[i] && definitions[i].type == "MemberExpression") {
             definitions[i].property.isMemberExpression = false;
             content += "public " + visit(definitions[i].property, null) + ";\n";
@@ -404,14 +413,14 @@ module.exports = function(code) {
       content = "parent";
 
     } else if (node.type == "IfStatement") {
-      content = "if ("+visit(node.test, node)+") {\n";
+      content = "if (" + visit(node.test, node) + ") {\n";
       content += visit(node.consequent, node) + "}";
 
       if (node.alternate) {
         content += " else ";
 
         if (node.alternate.type == "BlockStatement") {
-          content += "{"+visit(node.alternate, node)+"}";
+          content += "{" + visit(node.alternate, node) + "}";
 
         } else {
           content += visit(node.alternate, node)
@@ -421,8 +430,8 @@ module.exports = function(code) {
     } else if (node.type == "SequenceExpression") {
       var expressions = [];
 
-      for (var i=0;i<node.expressions.length;i++) {
-        expressions.push( visit(node.expressions[i], node) );
+      for (var i = 0; i < node.expressions.length; i++) {
+        expressions.push(visit(node.expressions[i], node));
       }
 
       content = expressions.join(', ') + ";";
@@ -443,14 +452,14 @@ module.exports = function(code) {
     } else if (node.type == "ForStatement") {
       content = "for (";
       content += visit(node.init, node);
-      content += visit(node.test, node) + ";" ;
+      content += visit(node.test, node) + ";";
       content += visit(node.update, node);
       content += ") {";
       content += visit(node.body, node);
       content += "}";
 
     } else if (node.type == "ForInStatement" || node.type == "ForOfStatement") {
-      content = "foreach (" + visit(node.right, node) + " as " + visit(node.left, node)+ " => $___)";
+      content = "foreach (" + visit(node.right, node) + " as " + visit(node.left, node) + " => $___)";
       content += "{" + visit(node.body, node) + "}";
 
     } else if (node.type == "UpdateExpression") {
@@ -468,7 +477,7 @@ module.exports = function(code) {
     } else if (node.type == "SwitchStatement") {
       content = "switch (" + visit(node.discriminant, node) + ")";
       content += "{";
-      for (var i=0; i < node.cases.length; i++) {
+      for (var i = 0; i < node.cases.length; i++) {
         content += visit(node.cases[i], node) + "\n";
       }
       content += "}";
@@ -478,10 +487,10 @@ module.exports = function(code) {
       if (node.test) {
         content += "case " + visit(node.test, node) + ":\n";
       } else {
-        content =  "default:\n";
+        content = "default:\n";
       }
 
-      for (var i=0; i < node.consequent.length; i++) {
+      for (var i = 0; i < node.consequent.length; i++) {
         content += visit(node.consequent[i], node);
       }
 
@@ -495,13 +504,13 @@ module.exports = function(code) {
 
       return "new " + visit(newNode, node);
 
-    } else if (node.type == "FunctionExpression") {
-
-      // Re-use FunctionDeclaration structure for method definitions
-      node.type = "FunctionDeclaration";
-      node.id = { name: node.id || "" };
-
-      content = visit(node, node.parent);
+      /*} else if (node.type == "FunctionExpression") {
+  
+        // Re-use FunctionDeclaration structure for method definitions
+        node.type = "FunctionDeclaration";
+        node.id = { name: node.id || "" };
+  
+        content = visit(node, node.parent);*/
 
 
       // Modules & Export (http://wiki.ecmascript.org/doku.php?id=harmony:modules_examples)
@@ -513,7 +522,7 @@ module.exports = function(code) {
       content = visit(node.declaration, node);
 
     } else if (node.type == "ImportDeclaration") {
-      for (var i=0,length = node.specifiers.length;i<length;i++) {
+      for (var i = 0, length = node.specifiers.length; i < length; i++) {
         content += visit(node.specifiers[i], node);
       }
 
@@ -529,12 +538,12 @@ module.exports = function(code) {
     } else if (node.type == "TemplateLiteral") {
       var expressions = node.expressions
         , quasis = node.quasis
-        , nodes = quasis.concat(expressions).sort(function(a, b) {
+        , nodes = quasis.concat(expressions).sort(function (a, b) {
           return b.range[0] < a.range[0];
         })
         , cooked = "";
 
-      for (var i=0; i<nodes.length; i++) {
+      for (var i = 0; i < nodes.length; i++) {
         if (nodes[i].type == "TemplateElement") {
           cooked += nodes[i].value.cooked;
         } else {
@@ -556,7 +565,7 @@ module.exports = function(code) {
       if (node.finalizer) {
         content += " finally {\n";
         content += visit(node.finalizer, node);
-	      content += "}\n";
+        content += "}\n";
       }
 
     } else if (node.type === "CatchClause") {
