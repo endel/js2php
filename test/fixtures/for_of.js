@@ -6,4 +6,5 @@ var items = [
 
 for (item of items) {
   echo(item['name'])
+  continue
 }

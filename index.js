@@ -517,6 +517,9 @@ module.exports = function(code) {
     } else if (node.type == "BreakStatement") {
       content = "break;";
 
+    } else if (node.type == "ContinueStatement") {
+      content = "continue;";
+
     } else if (node.type == "NewExpression") {
       // re-use CallExpression for NewExpression's
       var newNode = utils.clone(node);
