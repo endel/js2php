@@ -251,7 +251,7 @@ module.exports = function(code) {
         }
 
         object.static = (object.name || object.value || "").match(/^[A-Z]/);
-        property.static = (property.name || property.value || "").match(/^[A-Z]/);
+        property.static = String(property.name || property.value || "").match(/^[A-Z]/);
 
         var accessor;
         if (node.property.static && object.static) {
