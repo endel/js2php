@@ -1,6 +1,6 @@
 {
   "name": "js2php",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "JavaScript to PHP transpiler.",
   "main": "index.js",
   "bin": "js2php",
