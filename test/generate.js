@@ -25,6 +25,11 @@ if (!target) {
 for(var i=0;i<fixtures.length;i++) {
   var file = fixturePath + fixtures[i],
       output = file.replace(/\.js$/, ".php");
+
+  if (file.match(/\.php$/)) {
+    continue;
+  }
+
   if (file.match(target)) {
     try {
       fs.writeFileSync(output, js2php(fs.readFileSync(file).toString()));

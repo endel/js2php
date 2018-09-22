@@ -185,6 +185,7 @@ module.exports = function(code) {
     } else if (node.type == "CallExpression") {
 
       var calleeDefined = scope.get(node).getDefinition(node.callee);
+      node = core.evaluate(node);
 
       node.callee.isCallee = (!calleeDefined || calleeDefined && (calleeDefined.type != "Identifier" &&
         calleeDefined.type != "VariableDeclarator"));
@@ -202,10 +203,9 @@ module.exports = function(code) {
       ) {
         var identifier = null;
         if (node.parent.type == "VariableDeclarator") {
-          // var something = (function() { return 0; })();
           identifier = node.parent.id.name;
+
         } else if (node.parent.type == "AssignmentExpression") {
-          // something = (function() { return 0; })();
           identifier = node.parent.left.name;
         }
         content += ";$" + identifier + " = " + "$" + identifier;

@@ -1,4 +1,5 @@
 var utils = require('./utils'),
+    _global = require('./core/global'),
     _array = require('./core/array'),
     _date = require('./core/date'),
     _function = require('./core/function'),
@@ -10,15 +11,15 @@ var utils = require('./utils'),
 module.exports = {
 
   evaluate: function(node) {
-    var method = node.property.name;
+    var handler = undefined;
 
-    // if (method == "hasOwnProperty") {
-    //   var args = utils.clone(node.parent.arguments);
-    //   node.parent.arguments = false;
-    //   return { type: 'CallExpression', callee: { type: 'Identifier', name: 'isset', }, arguments: args };
-    // }
+    if (node.property) {
+      var method = node.property.name;
+      handler = _array[method] || _date[method] || _function[method] || _json[method] || _string[method] || _math[method] || _number[method];
 
-    var handler = _array[method] || _date[method] || _function[method] || _json[method] || _string[method] || _math[method] || _number[method];
+    } else if (node.callee) {
+      handler = _global[node.callee.name];
+    }
 
     return (handler) ? handler(node) : node;
   }
