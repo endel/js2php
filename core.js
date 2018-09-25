@@ -1,4 +1,5 @@
 var utils = require('./utils'),
+    scope = require('./scope'),
     _global = require('./core/global'),
     _array = require('./core/array'),
     _date = require('./core/date'),
@@ -21,7 +22,12 @@ module.exports = {
       handler = _global[node.callee.name];
     }
 
-    return (handler) ? handler(node) : node;
+    if (handler) {
+      var node = handler(node);
+      node.scope = scope.create(node);
+    }
+
+    return node;
   }
 
 }
