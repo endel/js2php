@@ -23,7 +23,7 @@ module.exports = {
     }
 
     if (handler) {
-      var node = handler(node);
+      node = handler(node);
       node.scope = scope.create(node);
     }
 
