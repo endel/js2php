@@ -32,6 +32,9 @@ for(var i=0;i<fixtures.length;i++) {
   }
 
   if (file.match(target)) {
+    if (/namespaces_require\.js$/.test(file)) {
+      options.namespace = 'NameTest';
+    }
     try {
       fs.writeFileSync(output, js2php(fs.readFileSync(file, 'utf8'), options));
       console.log("OK: " + output);

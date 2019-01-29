@@ -206,6 +206,33 @@ module.exports = function(code, options) {
   }
   var emitter = new Emitter();
 
+  function handleImport(node) {
+    node.declarations.forEach(function(d) {
+      if (d.type !== 'VariableDeclarator') { return; }
+      // the RHS is require('..some string..') but we're going to ignore that
+      if (d.id.type === 'ObjectPattern') {
+        emitter.locStart(d);
+        d.id.properties.forEach(function(p, idx) {
+          if (idx > 0) { emitter.nl(); }
+          var name = utils.classize(p.key.name);
+          if (options.namespace) { name = options.namespace + "\\" + name; }
+          emitter.emit("use " + name);
+          if (p.key.name !== p.value.name) {
+            emitter.emit(" as " + utils.classize(p.value.name));
+          }
+          emitter.emit(";");
+        });
+        emitter.locEnd(d);
+      } else if (d.id.type === 'Identifier') {
+        var name = d.id.name;
+        if (options.namespace) { name = options.namespace + "\\" + name; }
+        emitter.locStart(d);
+        emitter.emit("use " + name + ";");
+        emitter.locEnd(d);
+      }
+    });
+  }
+
   function visit(node, parent) {
     var semicolon = false;
 
@@ -214,6 +241,31 @@ module.exports = function(code, options) {
     if (!node.suppressLoc) { emitter.locStart(node); }
 
     if (node.type == "Program" || node.type == "BlockStatement" || node.type == "ClassBody") {
+      // Skip strictness declaration
+      if (node.body[0] && node.body[0].type === 'ExpressionStatement' &&
+          node.body[0].expression.type === 'Literal' &&
+          node.body[0].expression.raw.match(/^["']use strict["']$/)) {
+        emitter.locStart(node.body[0]); // flush leading comment
+        node.body.shift();
+      }
+      if (node.type === 'Program') {
+        if (options.namespace) {
+          // Add optional namespace.
+          emitter.emit(`namespace ${options.namespace};`);
+          emitter.nl();
+        }
+
+        // Look for require declarations
+        while (node.body[0] && node.body[0].type === 'VariableDeclaration' &&
+               node.body[0].declarations[0] &&
+               node.body[0].declarations[0].type === 'VariableDeclarator' &&
+               node.body[0].declarations[0].init &&
+               node.body[0].declarations[0].init.type === 'CallExpression' &&
+               node.body[0].declarations[0].init.callee.type === 'Identifier' &&
+               node.body[0].declarations[0].init.callee.name === 'require') {
+          handleImport(node.body.shift());
+        }
+      }
 
       for (var i=0,length = node.body.length;i<length;i++) {
         visit(node.body[i], node);

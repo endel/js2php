@@ -8,6 +8,9 @@ while (/^-/.test(process.argv[2])) {
   if (process.argv[2]=="-v" || process.argv[2]=="--version") {
     console.warn(require('./package.json').version);
     return;
+  } else if (process.argv[2]=="-n" || process.argv[2]=="--namespace") {
+    options.namespace = process.argv[3];
+    process.argv.shift(); process.argv.shift();
   } else {
     console.warn("Unknown option:", process.argv.shift());
   }
