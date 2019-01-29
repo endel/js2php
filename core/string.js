@@ -129,6 +129,8 @@ module.exports = {
     else if (args[0].value === '') {
       method = "str_split";
       args = [args[1]];
+    } else if (args.length == 2) {
+      args[0].suppressParens = true;
     }
 
     return {
@@ -143,9 +145,9 @@ module.exports = {
 
   substr: function(node) {
     var args = utils.clone(node.parent.arguments);
-    args.unshift(node.parent.callee.object);
-
     node.parent.arguments = false;
+    if (args.length === 1) { args[0].suppressParens = true; }
+    args.unshift(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -159,6 +161,7 @@ module.exports = {
 
   match: function(node) {
     var args = utils.clone(node.parent.arguments);
+    args[0].suppressParens = true;
     args.push(node.parent.callee.object);
 
     if(args[0].type === 'Literal') {

@@ -5,12 +5,13 @@ var core = require('./core'),
 
 module.exports = function(code, options) {
   options = options || {};
-  var useConciseArrays = !!options.conciseArrays;
+  var useConciseArrays = (options.conciseArrays === false) ? false : true;
   var ast = espree.parse(code, {
     loc : true,
     range : true,
     tokens : true,
     comment : true,
+    attachComment: true,
     ecmaFeatures: {
       arrowFunctions: true, // enable parsing of arrow functions
       blockBindings: true, // enable parsing of let/const
@@ -39,40 +40,205 @@ module.exports = function(code, options) {
       experimentalObjectRestSpread: true // allow experimental object rest/spread
     }
   });
+  var tokenStartMap = Object.create(null), tokenEndMap = Object.create(null);
+  var locToKey = function(loc) {
+    return loc.line + '-' + loc.column;
+  };
+  (function() {
+    var lines = code.split(/\n/g);
+    // slideFwd and slideBck skip over whitespace
+    var slideFwd = function(loc) {
+      loc = {line: loc.line, column: loc.column};
+      while (true) {
+        var l = lines[loc.line - 1];
+        var c = l[loc.column];
+        if (!/[ \t\r\n]/.test(c)) break;
+        loc.column++;
+        if (loc.column >= l.length) { loc.column = 0; loc.line++; }
+      }
+      return loc;
+    };
+    var slideBck = function(loc) {
+      loc = {line: loc.line, column: loc.column};
+      while (true) {
+        var l = lines[loc.line - 1];
+        var c = l[loc.column - 1];
+        if (!/[ \t\r\n]/.test(c)) break;
+        loc.column--;
+        if (loc.column < 0) {
+          loc.line--;
+          loc.column = lines[loc.line - 1].length - 1;
+        }
+      }
+      return loc;
+    };
+    ast.tokens.forEach(function(t) {
+      tokenStartMap[locToKey(slideBck(t.loc.start))] = t;
+      tokenEndMap[locToKey(slideFwd(t.loc.end))] = t;
+    });
+  })();
 
   var rootScope = scope.create(ast, scope.KIND_ROOT);
+  function Emitter() {
+    this.buffer = '';
+    this.line = 1;
+    this.insertionPoints = [];
+    this.indentLevel = 0;
+  }
+  Emitter.prototype.toString = function() { return this.buffer; };
+  Emitter.prototype.emit = function(str) {
+    this.buffer += str;
+  };
+  Emitter.prototype.nl = function() {
+    this.buffer = this.buffer.replace(/[ \t]+$/, '') + '\n';
+    for (var i = 0; i < this.indentLevel; i++) {
+      this.buffer += '\t';
+    }
+    this.line++;
+  }
+  Emitter.prototype.block = function(open, f, close) {
+    var firstline = this.line;
+    this.emit(open);
+    this.incrIndent();
+    f();
+    if (this.line !== firstline) { this.ensureNl(); }
+    this.decrIndent();
+    this.emit(close);
+  };
+  Emitter.prototype.incrIndent = function() {
+    this.indentLevel++;
+    if (/\t$/.test(this.buffer)) { this.emit('\t'); }
+  }
+  Emitter.prototype.decrIndent = function() {
+    this.indentLevel--;
+    if (/\t$/.test(this.buffer)) {
+      this.buffer = this.buffer.slice(0, this.buffer.length - 1);
+    }
+  }
+  Emitter.prototype.locStart = function(node) {
+    if (node.leadingComments && node.leadingComments.length) {
+      node.leadingComments.forEach(function(c) {
+        this.emitComment(c);
+      }, this);
+    }
+    if (node.type === 'Program') { return; }
+    if (node && node.loc) {
+      while (node.loc.start.line > this.line) {
+        this.nl();
+      }
+      this.line = node.loc.start.line;
+    }
+    // Hack for preserving parentheses from the original
+    if (!(node && node.suppressParens)) {
+      var startT = node && node.loc && tokenEndMap[locToKey(node.loc.start)];
+      var endT = node && node.loc && tokenStartMap[locToKey(node.loc.end)];
+      if (
+        startT && startT.type==='Punctuator' && startT.value === '(' &&
+        endT && endT.type==='Punctuator' && endT.value === ')'
+      ) {
+        this.emit('(');
+      }
+    }
+  };
+  Emitter.prototype.locEnd = function(node) {
+    // Hack for preserving parentheses from the original
+    if (!(node && node.suppressParens)) {
+      var startT = node && node.loc && tokenEndMap[locToKey(node.loc.start)];
+      var endT = node && node.loc && tokenStartMap[locToKey(node.loc.end)];
+      if (
+        startT && startT.type==='Punctuator' && startT.value === '(' &&
+        endT && endT.type==='Punctuator' && endT.value === ')'
+      ) {
+        this.emit(')');
+      }
+    }
+    if (node && node.loc) {
+      while (node.loc.end.line > this.line) {
+        this.nl();
+      }
+      this.line = node.loc.end.line;
+    }
+    if (node.trailingComments && node.trailingComments.length) {
+      node.trailingComments.forEach(function(c) {
+        this.emitComment(c);
+      }, this);
+    }
+  };
+  Emitter.prototype.emitComment = function(c) {
+    if (c.emitted) { return; }
+    this.locStart(c);
+    if (c.type==='Block') {
+      this.emit('/*');
+      c.value.split(/\n/).forEach(function(l, idx) {
+        if (idx > 0) { this.nl(); }
+        this.emit(l.replace(/^\t+/, ''));
+      }, this);
+      this.emit('*/');
+    } else {
+      this.emit('//' + c.value); this.nl();
+    }
+    c.emitted = true;
+  };
+  Emitter.prototype.isSemiLast = function() {
+    return this.buffer.match(/;\n?[ ]*$/);
+  }
+  Emitter.prototype.ensureSemi = function() {
+    if (!emitter.isSemiLast()) { this.emit(';'); }
+  };
+  Emitter.prototype.ensureNl = function() {
+    if (!/\n[ \t]*$/.test(this.buffer)) {
+      this.nl();
+    }
+  };
+  Emitter.prototype.pushInsertionPoint = function() {
+    this.insertionPoints.push(this.buffer.length);
+  }
+  Emitter.prototype.popInsertionPoint = function() {
+    this.insertionPoints.pop();
+  }
+  Emitter.prototype.insertAt = function(depth, str) {
+    var idx = this.insertionPoints.length - depth - 1;
+    var at = this.insertionPoints[idx];
+    this.buffer = this.buffer.slice(0, at) + str + this.buffer.slice(at);
+    while (++idx < this.insertionPoints.length) {
+      this.insertionPoints[idx] += str.length;
+    }
+  }
+  var emitter = new Emitter();
 
   function visit(node, parent) {
-    var content = "", semicolon = false;
+    var semicolon = false;
 
     // set parent node
     if (parent) { node.parent = parent; }
+    if (!node.suppressLoc) { emitter.locStart(node); }
 
     if (node.type == "Program" || node.type == "BlockStatement" || node.type == "ClassBody") {
 
       for (var i=0,length = node.body.length;i<length;i++) {
-        content += visit(node.body[i], node);
+        visit(node.body[i], node);
       }
 
     } else if (node.type == "VariableDeclaration") {
       // declaration of one or multiple variables
       for (var i=0,length=node.declarations.length;i<length;i++) {
-        content += visit(node.declarations[i], node);
+        visit(node.declarations[i], node);
       }
 
     } else if (node.type == "VariableDeclarator") {
       scope.get(node).register(node);
 
       // declaration of one variable
-      content = '$' + node.id.name;
+      emitter.emit('$' + node.id.name);
 
       if (node.init) {
-        content += ' = ' + visit(node.init, node);
+        emitter.emit(' = ');
+        visit(node.init, node);
         semicolon = true;
       } else if (node.parent.parent.type !== "ForInStatement" &&
         node.parent.parent.type !== "ForStatement" &&
         node.parent.parent.type !== "ForOfStatement") {
-        content += ' = null';
+        emitter.emit(' = null');
         semicolon = true;
       }
 
@@ -81,23 +247,22 @@ module.exports = function(code, options) {
 
       if (!node.static && !node.isCallee && !node.isMemberExpression) {
         scope.get(node).getDefinition(node);
-        content = "$";
+        emitter.emit('$' + identifier);
+      } else {
+        emitter.emit(identifier);
       }
 
-      content += identifier;
-
     } else if (node.type == "Punctuator") {
-      content = node.value;
+      emitter.emit(node.value);
 
     } else if (node.type == "Literal") {
-
       var value = (node.raw.match(/^["']undefined["']$/)) ? "NULL" : node.raw;
-      content = value;
+      emitter.emit(value);
 
     } else if (node.type == "BinaryExpression" || node.type == "LogicalExpression") {
 
       if (node.operator == 'in') {
-        content = visit({
+        visit({
           type: 'CallExpression',
           callee: {
             type: 'Identifier',
@@ -124,24 +289,34 @@ module.exports = function(code, options) {
             }
           }
         }
-        content = visit(node.left, node) + " " + node.operator + " " + visit(node.right, node);
+        visit(node.left, node);
+        emitter.emit(" " + node.operator + " ");
+        emitter.incrIndent();
+        visit(node.right, node);
+        emitter.decrIndent();
       }
 
     } else if (node.type == "AssignmentExpression" || node.type == "AssignmentPattern") {
       scope.get(node).register(node.left);
 
-      content = visit(node.left, node) + " " + (node.operator || "=") + " " + visit(node.right, node);
+      visit(node.left, node);
+      emitter.emit(" " + (node.operator || "=") + " ");
+      visit(node.right, node);
 
     } else if (node.type == "ConditionalExpression") {
-      content = "(" + visit(node.test, node) + ")" +
-        " ? " + visit(node.consequent, node) +
-        " : " + visit(node.alternate, node);
+      emitter.emit('(');
+      node.test.suppressParens = true;
+      visit(node.test, node);
+      emitter.emit(') ? ');
+      visit(node.consequent, node);
+      emitter.emit(' : ');
+      visit(node.alternate, node);
 
     } else if (node.type == "UnaryExpression") {
 
       // override typeof unary expression
       if (node.operator == 'typeof') {
-        content = visit({
+        visit({
           type: 'CallExpression',
           callee: {
             type: 'Identifier',
@@ -152,7 +327,7 @@ module.exports = function(code, options) {
 
         // override delete unary expression
       } else if (node.operator == 'delete') {
-        content = visit({
+        visit({
           type: 'CallExpression',
           callee: {
             type: 'Identifier',
@@ -162,10 +337,15 @@ module.exports = function(code, options) {
         }, node);
 
       } else {
-        content = node.operator + visit(node.argument, node);
+        emitter.emit(node.operator);
+        visit(node.argument, node);
       }
 
     } else if (node.type == "ExpressionStatement") {
+      if (node.expression.type === 'Literal' && node.expression.raw.match(/^["']use strict["']$/)) {
+        // Ignore strictness declarations.
+        return;
+      }
       var iife = "";
 
       var isIIFE = (
@@ -178,10 +358,12 @@ module.exports = function(code, options) {
       // IIFE
       if (isIIFE) {
         node.expression.isIIFE = true;
+        node.expression.suppressParens = true;
         iife = "call_user_func(";
       }
 
-      content = iife + visit(node.expression, node);
+      emitter.emit(iife);
+      visit(node.expression, node);
       semicolon = true;
 
     } else if (node.type == "CallExpression") {
@@ -193,9 +375,9 @@ module.exports = function(code, options) {
         calleeDefined.type != "VariableDeclarator"));
 
       if (node.callee.type === 'Super') {
-        content += 'parent::__construct';
+        emitter.emit('parent::__construct');
       } else {
-        content += visit(node.callee, node);
+        visit(node.callee, node);
       }
 
       // inline anonymous call
@@ -210,22 +392,27 @@ module.exports = function(code, options) {
         } else if (node.parent.type == "AssignmentExpression") {
           identifier = node.parent.left.name;
         }
-        content += ";$" + identifier + " = " + "$" + identifier;
+        emitter.emit(";");
+        emitter.nl();
+        emitter.emit("$" + identifier + " = " + "$" + identifier);
       }
 
       if (node.arguments) {
         var arguments = [];
 
-        for (var i=0, length = node.arguments.length; i < length; i++) {
-          arguments.push( visit(node.arguments[i], node) );
-        }
-
         if (node.isIIFE) {
-          content += ", " + arguments.join(', ') + ")";
-
+          if (node.arguments.length) emitter.emit(',');
         } else {
-          content += "(" + arguments.join(', ') + ")";
+          emitter.emit('(');
+          emitter.incrIndent();
         }
+        for (var i=0, length = node.arguments.length; i < length; i++) {
+          if (node.arguments.length===1) { node.arguments[i].suppressParens=true; }
+          visit(node.arguments[i], node);
+          if ((i+1) < length) { emitter.emit(', '); }
+        }
+        emitter.decrIndent();
+        emitter.emit(')');
       }
 
       // allow semicolon if parent node isn't MemberExpression or Property
@@ -238,7 +425,7 @@ module.exports = function(code, options) {
 
       if (node != newNode) {
         // fix parent node type
-        content = visit(newNode, node.parent);
+        visit(newNode, node.parent);
 
       } else {
 
@@ -246,7 +433,7 @@ module.exports = function(code, options) {
 
         if (node.object.type == "MemberExpression" && node.object.object && node.object.property) {
           object = node.object.object,
-            property = node.object.property;
+          property = node.object.property;
         } else {
           object = node.object;
           property = node.property;
@@ -265,18 +452,24 @@ module.exports = function(code, options) {
         }
 
         if (node.computed) {
-          content = visit(node.object, node) + "[" + visit(node.property, node) + "]";
+          visit(node.object, node);
+          emitter.block('[', function() {
+            visit(node.property, node);
+          }, ']');
         } else {
           node.property.isMemberExpression = true;
-          content = visit(node.object, node) + accessor + visit(node.property, node);
+          visit(node.object, node);
+          emitter.emit(accessor);
+          visit(node.property, node);
         }
       }
 
     } else if (node.type == "FunctionDeclaration" ||
       node.type == "ArrowFunctionExpression") {
-      var param,
-        parameters = [],
-        defaults = node.defaults || [];
+      var defaults = node.defaults || [];
+
+      emitter.emit("function " + ((node.id) ? node.id.name : "") + "(");
+      emitter.incrIndent();
 
       // function declaration creates a new scope
       scope.create(node);
@@ -284,119 +477,131 @@ module.exports = function(code, options) {
       // compute function params
       for (var i=0; i < node.params.length; i++) {
         if (defaults[i]) {
-          param = visit({
+          visit({
             type: "BinaryExpression",
             left: node.params[i],
             operator: '=',
             right: defaults[i]
           }, node);
         } else {
-          param = visit(node.params[i], node)
+          if (node.params.length===1) { node.params[i].suppressParens=true; }
+          visit(node.params[i], node)
+        }
+        if ((i+1) < node.params.length) {
+          emitter.emit(', ');
         }
 
         // register parameter identifiers
         if (scope.get(node).parent) {
           scope.get(node).register(node.params[i]);
         }
-
-        parameters.push(param);
       }
+      emitter.decrIndent();
+      emitter.emit(') ');
+      emitter.pushInsertionPoint();
+      emitter.block('{', function() {
+        emitter.pushInsertionPoint();
 
-      var func_contents = visit(node.body, node),
-        using = scope.get(node).using;
+        visit(node.body, node); /* function contents */
+        var using = scope.get(node).using
+            // XXX I don't understand why I have to do this:
+            .filter(function(u) { return u!==undefined;});
 
-      content = "function " + ((node.id) ? node.id.name : "");
-      content += "(" + parameters.join(", ") + ") ";
+        // try to use parent's variables
+        // http://php.net/manual/pt_BR/functions.anonymous.php
+        if (using.length > 0 && node.parent.type !== "Program") {
+          emitter.insertAt(1, "use (" + using.map(function(identifier) {
+            return "&$" + identifier;
+          }).join(', ') + ") ");
+        }
 
-      // try to use parent's variables
-      // http://php.net/manual/pt_BR/functions.anonymous.php
-      if (using.length > 0 && node.parent.type !== "Program") {
-        content += "use (" + using.map(function(identifier) {
-          return "&$" + identifier;
-        }).join(', ') + ") ";
-      }
+        // workaround when scope doesn't allow to have the `use` keyword.
+        if (node.parent.type === "Program") {
+          emitter.insertAt(0, using.map(function(identifier) {
+            return `\n\tglobal $${identifier};`;
+          }).join(''));
+        }
 
-      content += "{\n";
-
-      // workaround when scope doesn't allow to have the `use` keyword.
-      if (node.parent.type === "Program") {
-        content += using.map(function(identifier) {
-          return `global $${identifier};`;
-        }).join("\n");
-      }
-
-      if (node.body.type === 'BinaryExpression') {
-        // x => x * 2
-        content += "return " + func_contents + ";\n";
-      } else {
-        content += func_contents;
-      }
-      content += "}\n";
+        if (node.body.type === 'BinaryExpression') {
+          // x => x * 2
+          emitter.insertAt(0, 'return ');
+          emitter.emit(';');
+        }
+      }, '}');
+      emitter.popInsertionPoint();
+      emitter.popInsertionPoint();
 
     } else if (node.type == "ObjectExpression") {
-      var properties = [];
-      for (var i=0; i < node.properties.length; i++) {
-        properties.push( visit(node.properties[i], node) )
-      }
-      content =
-        (useConciseArrays ? "[" : "array(") +
-        properties.join(", ") +
-        (useConciseArrays ? "]" : ")");
+      emitter.block(useConciseArrays ? '[' : 'array(', function() {
+        for (var i=0; i < node.properties.length; i++) {
+          visit(node.properties[i], node);
+          if ((i+1) < node.properties.length) { emitter.emit(', '); }
+        }
+      }, useConciseArrays ? ']' : ')');
 
     } else if (node.type == "ArrayExpression") {
-      var elements = [];
-      for (var i=0; i < node.elements.length; i++) {
-        elements.push( visit(node.elements[i], node) )
-      }
-      content =
-        (useConciseArrays ? "[" : "array(") +
-        elements.join(", ") +
-        (useConciseArrays ? "]" : ")");
+      emitter.block(useConciseArrays ? '[' : 'array(', function() {
+        for (var i=0; i < node.elements.length; i++) {
+          visit(node.elements[i], node);
+          if ((i+1) < node.elements.length) { emitter.emit(', '); }
+        }
+      }, useConciseArrays ? ']' : ')');
 
     } else if (node.type == "Property") {
       var property = (node.key.type == 'Identifier') ? node.key.name : node.key.value;
-      content = '"'+property+'" => ' + visit(node.value, node);
+      emitter.emit('"'+property+'" => ');
+      visit(node.value, node);
 
     } else if (node.type == "ReturnStatement") {
       semicolon = true;
-      content = "return";
+      emitter.emit('return');
 
       if (node.argument) {
-        content += " " + visit(node.argument, node);
+        emitter.emit(' ');
+        visit(node.argument, node);
       }
 
     } else if (node.type == "ClassDeclaration") {
-      content = "class " + node.id.name
+      emitter.emit("class " + node.id.name + " ");
 
       if (node.superClass) {
-        content += " extends " + node.superClass.name;
+        emitter.emit("extends " + node.superClass.name + " ");
       }
 
       var s = scope.create(node);
-      content += "\n{\n";
-      content += visit(node.body, node);
+      emitter.emit('{'); emitter.incrIndent();
+      visit(node.body, node);
 
       if (s.getters.length > 0) {
-        content += "function __get($_property) {\n";
-        for (var i=0;i<s.getters.length;i++) {
-          content += "if ($_property === '"+s.getters[i].key.name+"') {\n";
-          content += visit(s.getters[i].value.body, node);
-          content += "}\n";
-        }
-        content += "}\n";
+        emitter.emit("function __get($_property) ");
+        emitter.block('{', function() {
+          for (var i=0;i<s.getters.length;i++) {
+            emitter.nl();
+            emitter.emit("if ($_property === '"+s.getters[i].key.name+"') ");
+            emitter.block('{', function() {
+              visit(s.getters[i].value.body, node);
+            }, '}');
+          }
+        }, '}');
+        emitter.nl();
       }
 
       if (s.setters.length > 0) {
-        content += "function __set($_property, $value) {\n";
-        for (var i=0;i<s.setters.length;i++) {
-          content += "if ($_property === '"+s.setters[i].key.name+"') {\n";
-          content += visit(s.setters[i].value.body, node);
-          content += "}\n";
-        }
-        content += "}\n";
+        emitter.emit("function __set($_property, $value) ");
+        emitter.block('{', function() {
+          for (var i=0;i<s.setters.length;i++) {
+            emitter.nl();
+            emitter.emit("if ($_property === '"+s.setters[i].key.name+"') ");
+            emitter.block('{', function() {
+              visit(s.setters[i].value.body, node);
+            }, '}');
+          }
+        }, '}');
+        emitter.nl();
       }
 
-      content += "\n}\n";
+      emitter.decrIndent();
+      emitter.emit("}");
 
 
     } else if (node.type == "MethodDefinition") {
@@ -404,7 +609,7 @@ module.exports = function(code, options) {
 
       // define getters and setters on scope
       if (node.kind == "get" || node.kind == "set") {
-        return "";
+        return;
       }
 
       var isConstructor = (node.key.name == "constructor");
@@ -414,7 +619,10 @@ module.exports = function(code, options) {
       node.value.type = "FunctionDeclaration";
       node.value.id = { name: node.key.name };
 
-      var tmpContent = visit(node.value, node);
+      // every method is public.
+      emitter.emit("public ");
+      if (node.static) { emitter.emit("static "); }
+      visit(node.value, node);
 
       // try to define public properties there were defined on constructor
       if (isConstructor) {
@@ -423,117 +631,153 @@ module.exports = function(code, options) {
         for(var i in definitions) {
           if (definitions[i] && definitions[i].type == "MemberExpression") {
             definitions[i].property.isMemberExpression = false;
-            content += "public " + visit(definitions[i].property, null) + ";\n";
+            emitter.nl();
+            if (definitions[i].parent.type === 'AssignmentExpression' &&
+                definitions[i].parent.parent.type==='ExpressionStatement') {
+              var p = definitions[i].parent.parent;
+              (p.leadingComments || []).forEach(function(c) {
+                if (c.type === 'Block') { /* repeat property doc comments */
+                  c.emitted=false;
+                }
+              });
+              emitter.locStart(p);
+             }
+            emitter.emit('public ');
+            definitions[i].property.suppressLoc = true;
+            visit(definitions[i].property, null);
+            emitter.emit(";");
+            //emitter.locEnd(definitions[i].property);
           }
         }
       }
 
-      // every method is public.
-      content += "public ";
-      if (node.static) { content += "static "; }
-
-      content += tmpContent;
-
     } else if (node.type == "ThisExpression") {
-      content = "$this";
+      emitter.emit("$this");
 
     } else if (node.type == "Super") {
-      content = "parent";
+      emitter.emit("parent");
 
     } else if (node.type == "IfStatement") {
-      content = "if ("+visit(node.test, node)+") {\n";
-      content += visit(node.consequent, node) + "}";
+      emitter.emit("if ");
+      emitter.block('(', function() {
+        node.test.suppressParens = true;
+        visit(node.test, node);
+      }, ')');
+      emitter.emit(' ');
+      emitter.block('{', function() {
+        visit(node.consequent, node);
+      }, '}');
 
       if (node.alternate) {
-        content += " else ";
+        emitter.emit(" else ");
 
         if (node.alternate.type == "BlockStatement") {
-          content += "{"+visit(node.alternate, node)+"}";
+          emitter.block('{', function() {
+            visit(node.alternate, node);
+          }, '}');
 
         } else {
-          content += visit(node.alternate, node)
+          visit(node.alternate, node)
         }
       }
 
     } else if (node.type == "SequenceExpression") {
-      var expressions = [];
 
       for (var i=0;i<node.expressions.length;i++) {
-        expressions.push( visit(node.expressions[i], node) );
+        visit(node.expressions[i], node);
+        if ((i+1) < node.expressions.length) {
+          emitter.emit(', ');
+        }
       }
-
-      content = expressions.join(', ') + ";";
+      semicolon = true;
 
     } else if (node.type == "WhileStatement") {
 
-      content = "while (" + visit(node.test, node) + ") {";
-      content += visit(node.body, node);
-      content += "}";
+      emitter.emit("while ");
+      emitter.block('( ', function() { node.test.suppressParens = true; visit(node.test, node); }, ' )');
+      emitter.emit(' ');
+      emitter.block('{', function() { visit(node.body, node); }, '}');
 
     } else if (node.type == "DoWhileStatement") {
 
-      content = "do {";
-      content += visit(node.body, node);
-      content += "} while (" + visit(node.test, node) + ")";
+      emitter.emit("do ");
+      emitter.block('{', function() { visit(node.body, node); }, '}');
+      emitter.emit(' while ');
+      emitter.block('(', function() { node.test.suppressParens = true; visit(node.test, node); }, ')');
       semicolon = true;
 
     } else if (node.type == "ForStatement") {
-      content = "for (";
-      content += visit(node.init, node);
-      content += visit(node.test, node) + ";" ;
-      content += visit(node.update, node);
-      content += ") {";
-      content += visit(node.body, node);
-      content += "}";
+      emitter.emit("for ");
+      emitter.block('(', function() {
+        visit(node.init, node); emitter.ensureSemi(); emitter.emit(' ');
+        visit(node.test, node); emitter.ensureSemi(); emitter.emit(' ');
+        visit(node.update, node);
+      }, ')');
+      emitter.emit(' ');
+      emitter.block('{', function() { visit(node.body, node); }, '}');
 
     } else if (node.type == "ForInStatement" || node.type == "ForOfStatement") {
-      content = "foreach (" + visit(node.right, node) + " as " + visit(node.left, node)+ " => $___)";
-      content += "{" + visit(node.body, node) + "}";
+      emitter.emit("foreach ");
+      emitter.block('(', function() {
+        visit(node.right, node);
+        emitter.emit(" as ");
+        visit(node.left, node);
+        emitter.emit(" => $___");
+      }, ')');
+      emitter.emit(' ');
+      emitter.block('{', function() { visit(node.body, node); }, '}');
 
     } else if (node.type == "UpdateExpression") {
 
       if (node.prefix) {
-        content += node.operator;
+        emitter.emit(node.operator);
       }
 
-      content += visit(node.argument, node);
+      visit(node.argument, node);
 
       if (!node.prefix) {
-        content += node.operator;
+        emitter.emit(node.operator);
       }
 
     } else if (node.type == "SwitchStatement") {
-      content = "switch (" + visit(node.discriminant, node) + ")";
-      content += "{";
-      for (var i=0; i < node.cases.length; i++) {
-        content += visit(node.cases[i], node) + "\n";
-      }
-      content += "}";
+      emitter.emit("switch ");
+      emitter.block('(', function() { node.discriminant.suppressParens = true; visit(node.discriminant, node); }, ')');
+      emitter.emit(' ');
+      emitter.block('{', function() {
+        for (var i=0; i < node.cases.length; i++) {
+          visit(node.cases[i], node); emitter.nl();
+        }
+      }, '}');
 
     } else if (node.type == "SwitchCase") {
 
       if (node.test) {
-        content += "case " + visit(node.test, node) + ":\n";
+        emitter.emit("case ");
+        visit(node.test, node);
+        emitter.emit(":");
       } else {
-        content =  "default:\n";
+        emitter.emit("default:");
       }
+      emitter.nl();
 
       for (var i=0; i < node.consequent.length; i++) {
-        content += visit(node.consequent[i], node);
+        visit(node.consequent[i], node);
       }
 
     } else if (node.type == "BreakStatement") {
-      content = "break;";
+      emitter.emit("break;");
 
     } else if (node.type == "ContinueStatement") {
-      content = "continue;";
+      emitter.emit("continue;");
 
     } else if (node.type == "NewExpression") {
       // re-use CallExpression for NewExpression's
       var newNode = utils.clone(node);
       newNode.type = "CallExpression";
 
-      return "new " + visit(newNode, node);
+      emitter.emit('new ');
+      visit(newNode, node);
+      return;
 
     } else if (node.type == "FunctionExpression") {
 
@@ -541,30 +785,30 @@ module.exports = function(code, options) {
       node.type = "FunctionDeclaration";
       node.id = { name: node.id || "" };
 
-      content = visit(node, node.parent);
+      visit(node, node.parent);
 
 
       // Modules & Export (http://wiki.ecmascript.org/doku.php?id=harmony:modules_examples)
     } else if (node.type == "ModuleDeclaration") {
-      content = "namespace " + utils.classize(node.id.value) + ";\n";
-      content += visit(node.body, node);
+      emitter.emit("namespace " + utils.classize(node.id.value) + ";");
+      visit(node.body, node);
 
     } else if (node.type == "ExportNamedDeclaration") {
-      content = visit(node.declaration, node);
+      visit(node.declaration, node);
 
     } else if (node.type == "ImportDeclaration") {
       for (var i=0,length = node.specifiers.length;i<length;i++) {
-        content += visit(node.specifiers[i], node);
+        visit(node.specifiers[i], node);
       }
 
     } else if (node.type == "ImportSpecifier") {
       var namespace = utils.classize(node.parent.source.value);
-      content += "use \\" + namespace + "\\" + node.imported.name;
+      emitter.emit("use \\" + namespace + "\\" + node.imported.name);
 
       // alias
-      if (node.local) { content += " as " + node.local.name; }
+      if (node.local) { emitter.emit(" as " + node.local.name); }
 
-      content += ";\n";
+      emitter.emit(";\n");
 
     } else if (node.type == "TemplateLiteral") {
       var expressions = node.expressions
@@ -574,52 +818,54 @@ module.exports = function(code, options) {
         })
         , cooked = "";
 
+      emitter.emit('"');
       for (var i=0; i<nodes.length; i++) {
         if (nodes[i].type == "TemplateElement") {
-          cooked += nodes[i].value.cooked;
+          emitter.emit(nodes[i].value.cooked);
         } else {
-          cooked += '{' + visit(nodes[i], node) + '}';
+          emitter.emit('{');
+          visit(nodes[i], node);
+          emitter.emit('}');
         }
       }
-
-      content += '"' + cooked + '"';
+      emitter.emit('"');
 
     } else if (node.type === "TryStatement") {
-      content += "try {\n";
-      content += visit(node.block, node);
-      content += "}";
+      emitter.emit("try ");
+      emitter.block('{', function() { visit(node.block, node); }, '}');
 
       if (node.handler) {
-        content += visit(node.handler, node);
+        visit(node.handler, node);
       }
 
       if (node.finalizer) {
-        content += " finally {\n";
-        content += visit(node.finalizer, node);
-	      content += "}\n";
+        emitter.emit(" finally ");
+        emitter.block('{', function() { visit(node.finalizer, node); }, '}');
       }
 
     } else if (node.type === "CatchClause") {
-      content += ' catch (Exception ';
+      emitter.emit(' catch (Exception ');
       scope.create(node.param, node);
-      content += visit(node.param, node);
-      content += ") {\n";
-      content += visit(node.body, node);
-      content += "}\n";
+      node.param.suppressParens = true;
+      visit(node.param, node);
+      emitter.emit(") ");
+      emitter.block('{', function() { visit(node.body, node); }, '}');
     } else if (node.type === "ThrowStatement") {
-      content += "throw " + visit(node.argument, node);
+      emitter.emit("throw ");
+      visit(node.argument, node);
       semicolon = true;
     } else {
-      console.log("'" + node.type + "' not implemented.", node);
+      throw new Error("'" + node.type + "' not implemented: " + JSON.stringify(node));
     }
 
     // append semicolon when required
-    if (semicolon && !content.match(/;\n?$/)) {
-      content += ";\n";
+    if (semicolon) {
+      emitter.ensureSemi();
     }
-
-    return content;
+    if (!node.suppressLoc) { emitter.locEnd(node); }
   }
 
-  return "<?php\n" + visit(ast);
+  emitter.emit("<?php\n");
+  visit(ast);
+  return emitter.toString();
 }

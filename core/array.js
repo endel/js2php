@@ -7,6 +7,8 @@ module.exports = {
   unshift: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    if (args.length === 1) { args[0].suppressParens = true; }
+    args.unshift(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -14,7 +16,7 @@ module.exports = {
         type: 'Identifier',
         name: 'array_unshift',
       },
-      arguments: [node.parent.callee.object, args[0]]
+      arguments: args,
     };
   },
 
@@ -44,6 +46,8 @@ module.exports = {
   push: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    if (args.length === 1) { args[0].suppressParens = true; }
+    args.unshift(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -51,7 +55,7 @@ module.exports = {
         type: 'Identifier',
         name: 'array_push',
       },
-      arguments: [ node.parent.callee.object, args[0] ]
+      arguments: args,
     };
   },
 
@@ -69,6 +73,7 @@ module.exports = {
   join: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    args[0].suppressParens = true;
 
     return {
       type: 'CallExpression',
@@ -77,6 +82,40 @@ module.exports = {
         name: 'join',
       },
       arguments: [ args[0], node.parent.callee.object ]
+    };
+  },
+
+  map: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+    args[0].suppressParens = true;
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'array_map',
+      },
+      arguments: [ node.parent.callee.object, args[0] ]
+    };
+  },
+
+  slice: function(node) {
+    // Second argument to array_slice is very different from Array#slice
+    if (node.parent.arguments.length !== 1) { return node; }
+    var args = utils.clone(node.parent.arguments);
+    args[0].suppressParens = true;
+    args.unshift(node.parent.callee.object);
+
+    node.parent.arguments = false;
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'array_slice',
+      },
+      arguments: args
     };
   },
 
@@ -101,6 +140,7 @@ module.exports = {
         args = utils.clone(node.parent.arguments);
 
     node.parent.arguments = false;
+    args[0].suppressParens = true;
 
     var targetDefinition = scope.get(node).getDefinition(node.parent.callee.object);
     if (utils.isString(node.parent.callee.object) || (targetDefinition && targetDefinition.dataType == "String")) {
