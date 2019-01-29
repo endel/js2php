@@ -5,6 +5,33 @@ module.exports = {
   //
   // string methods
   //
+  indexOf: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+    if (args.length === 1) { args[0].suppressParens = true; }
+    args.unshift(node.parent.callee.object);
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'strpos',
+      },
+      arguments: args
+    };
+  },
+
+  length: function(node) {
+    var object = (node.parent.callee && node.parent.callee.object) || node.object;
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'strlen',
+      },
+      arguments: [object],
+    };
+  },
 
   replace: function(node) {
     var method = "str_replace";
@@ -13,7 +40,7 @@ module.exports = {
 
     node.parent.arguments = false;
 
-    if(args[0].type !== 'Identifier'){
+    if(args[0].type === 'Literal'){
       var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
           regex = regexpData && regexpData[1],
           flags = regexpData && regexpData[2] || "",
@@ -38,6 +65,34 @@ module.exports = {
       callee: {
         type: 'Identifier',
         name: method,
+      },
+      arguments: args
+    };
+  },
+
+  slice: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    if (node.parent.arguments.length > 1) {
+      // Second argument to substr is very different from String#slice
+      // unless it is negative.
+      if (args[1].type === 'UnaryExpression' && args[1].operator==='-' &&
+          args[1].argument.type==='Literal') {
+        /* this is okay */
+      } else {
+        args[1].trailingComments = [{ type: 'Block', value: 'CHECK THIS'}];
+      }
+    } else {
+      args[0].suppressParens = true;
+    }
+    args.unshift(node.parent.callee.object);
+
+    node.parent.arguments = false;
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'substr',
       },
       arguments: args
     };
@@ -124,6 +179,9 @@ module.exports = {
       method = "preg_split";
       args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
       args[0].type = "Literal";
+      if (args.length === 2) {
+        args[0].suppressParens = true;
+      }
     }
     // If splitting with a blank delimiter, use str_split.
     else if (args[0].value === '') {

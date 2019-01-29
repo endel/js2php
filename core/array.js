@@ -101,10 +101,19 @@ module.exports = {
   },
 
   slice: function(node) {
-    // Second argument to array_slice is very different from Array#slice
-    if (node.parent.arguments.length !== 1) { return node; }
     var args = utils.clone(node.parent.arguments);
-    args[0].suppressParens = true;
+    if (node.parent.arguments.length > 1) {
+      // Second argument to array_slice is very different from Array#slice
+      // unless it is negative.
+      if (args[1].type === 'UnaryExpression' && args[1].operator==='-' &&
+          args[1].argument.type==='Literal') {
+        /* this is okay */
+      } else {
+        args[1].trailingComments = [{ type: 'Block', value: 'CHECK THIS'}];
+      }
+    } else {
+      args[0].suppressParens = true;
+    }
     args.unshift(node.parent.callee.object);
 
     node.parent.arguments = false;

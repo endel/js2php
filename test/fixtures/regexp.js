@@ -21,3 +21,6 @@ var_dump("hey hey hey".replace(/y/g, "llo"));
 var string = 'hello';
 var regex = 'ello';
 var nonliteral = string.match(regex);
+
+var_dump(/abc\n[/]/.test('def'));
+var_dump(/[\n]/.source.slice(1,-1));
