@@ -255,6 +255,14 @@ module.exports = function(code, options) {
           emitter.nl();
         }
 
+        // skip core update require
+        while (node.body[0] && node.body[0].type === 'ExpressionStatement' &&
+               node.body[0].expression.type === 'CallExpression' &&
+               node.body[0].expression.callee.type === 'Identifier' &&
+               node.body[0].expression.callee.name === 'require') {
+          node.body.shift(); // discard this
+        }
+
         // Look for require declarations
         while (node.body[0] && node.body[0].type === 'VariableDeclaration' &&
                node.body[0].declarations[0] &&
