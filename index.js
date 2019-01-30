@@ -374,6 +374,15 @@ module.exports = function(code, options) {
       node.callee.isCallee = (!calleeDefined || calleeDefined && (calleeDefined.type != "Identifier" &&
         calleeDefined.type != "VariableDeclarator"));
 
+      if (node.parent && node.parent.arguments === false && node.parent.parent.type === 'ExpressionStatement' && node.callee.type === 'Identifier' && node.callee.name === 'array_push' && node.arguments.length === 2) {
+        // Special case syntax
+        visit(node.arguments[0], node);
+        emitter.emit('[] = ');
+        visit(node.arguments[1], node);
+        emitter.locEnd(node);
+        return;
+      }
+
       if (node.callee.type === 'Super') {
         emitter.emit('parent::__construct');
       } else {

@@ -3,6 +3,18 @@ var utils = require('../utils'),
     string = require('./string');
 
 module.exports = {
+  Array_isArray: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'is_array',
+      },
+      arguments: args,
+    };
+  },
 
   unshift: function(node) {
     var args = utils.clone(node.parent.arguments);
@@ -97,6 +109,24 @@ module.exports = {
         name: 'array_map',
       },
       arguments: [ node.parent.callee.object, args[0] ]
+    };
+  },
+
+  reduce: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
+    if (args.length === 1) {
+      args[0].suppressParens = true;
+    }
+    args.unshift(node.parent.callee.object);
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'array_reduce',
+      },
+      arguments: args,
     };
   },
 
