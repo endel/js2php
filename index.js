@@ -531,7 +531,7 @@ module.exports = function(code, options) {
           }).join(''));
         }
 
-        if (node.body.type === 'BinaryExpression') {
+        if (node.expression) {
           // x => x * 2
           emitter.insertAt(0, 'return ');
           emitter.emit(';');
