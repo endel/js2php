@@ -7,6 +7,7 @@ var utils = require('./utils'),
     _function = require('./core/function'),
     _json = require('./core/json'),
     _object = require('./core/object'),
+    _promise = require('./core/promise'),
     _regexp = require('./core/regexp'),
     _string = require('./core/string'),
     _math = require('./core/math'),
@@ -26,9 +27,9 @@ module.exports = {
     if (node.object && node.object.type === 'Literal') {
       var method = node.property.name;
       handler = node.object.regex ? _regexp[method] : _string[method];
-    } else if (node.object && node.object.type === 'Identifier' && /^(Array|Object|console)$/.test(node.object.name)) {
+    } else if (node.object && node.object.type === 'Identifier' && /^(Array|Object|Promise|console)$/.test(node.object.name)) {
       var longName = node.object.name + '_' + node.property.name;
-      handler = _array[longName] || _object[longName] || _console[longName];
+      handler = _array[longName] || _object[longName] || _promise[longName] || _console[longName];
     } else if (node.property) {
       var method = node.property.name;
       // _array should be before _string here so we pick up the correct

@@ -929,6 +929,10 @@ module.exports = function(code, options) {
     } else if (node.type === "SpreadElement") {
       emitter.emit('...');
       visit(node.argument, node);
+    } else if (node.type === "YieldExpression") {
+      // Parsoid-specific: ignore yield expression.
+      emitter.emit("/* await */ ");
+      visit(node.argument, node);
     } else {
       throw new Error("'" + node.type + "' not implemented: " + JSON.stringify(node));
     }
