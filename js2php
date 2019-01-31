@@ -4,13 +4,20 @@ var fs = require('fs'),
     js2php = require('./index.js'),
     options = {};
 
-if (process.stdin.isTTY) {
-
+while (/^-/.test(process.argv[2])) {
   if (process.argv[2]=="-v" || process.argv[2]=="--version") {
-    console.log(require('./package.json').version);
-
+    console.warn(require('./package.json').version);
+    return;
   } else {
-    console.log(  js2php(fs.readFileSync(process.argv[2], 'utf8'), options) );
+    console.warn("Unknown option:", process.argv.shift());
+  }
+}
+if (process.stdin.isTTY || process.argv.length > 2) {
+  var result = js2php(fs.readFileSync(process.argv[2], 'utf8'), options);
+  if (process.argv.length < 4) {
+    console.log( result );
+  } else {
+    fs.writeFileSync(process.argv[3], result, 'utf8');
   }
 
 } else {
