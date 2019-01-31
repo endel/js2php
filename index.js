@@ -863,6 +863,12 @@ module.exports = function(code, options) {
       emitter.emit("throw ");
       visit(node.argument, node);
       semicolon = true;
+    } else if (node.type === "RestElement") {
+      emitter.emit('...');
+      visit(node.argument, node);
+    } else if (node.type === "SpreadElement") {
+      emitter.emit('...');
+      visit(node.argument, node);
     } else {
       throw new Error("'" + node.type + "' not implemented: " + JSON.stringify(node));
     }
