@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 var fs = require('fs'),
-    js2php = require('./index.js');
+    js2php = require('./index.js'),
+    options = {};
 
 if (process.stdin.isTTY) {
 
@@ -9,7 +10,7 @@ if (process.stdin.isTTY) {
     console.log(require('./package.json').version);
 
   } else {
-    console.log(  js2php(fs.readFileSync(process.argv[2]).toString()) );
+    console.log(  js2php(fs.readFileSync(process.argv[2], 'utf8'), options) );
   }
 
 } else {
@@ -17,6 +18,6 @@ if (process.stdin.isTTY) {
   process.stdin.resume();
   process.stdin.on('data', function(data) { code += data; });
   process.stdin.on('end', function() {
-    console.log( js2php(code) );
+    console.log( js2php(code, options) );
   });
 }

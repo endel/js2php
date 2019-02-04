@@ -24,7 +24,8 @@ if (!target) {
 
 for(var i=0;i<fixtures.length;i++) {
   var file = fixturePath + fixtures[i],
-      output = file.replace(/\.js$/, ".php");
+      output = file.replace(/\.js$/, ".php"),
+      options = {};
 
   if (file.match(/\.php$/)) {
     continue;
@@ -32,7 +33,7 @@ for(var i=0;i<fixtures.length;i++) {
 
   if (file.match(target)) {
     try {
-      fs.writeFileSync(output, js2php(fs.readFileSync(file).toString()));
+      fs.writeFileSync(output, js2php(fs.readFileSync(file, 'utf8'), options));
       console.log("OK: " + output);
     } catch (e) {
       console.log("FAILED: " + file + " => '" + e.message + "'", e.stack);

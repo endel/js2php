@@ -3,7 +3,8 @@ var core = require('./core'),
     utils = require('./utils'),
     espree = require('espree');
 
-module.exports = function(code) {
+module.exports = function(code, options) {
+  options = options || {};
   var ast = espree.parse(code, {
     loc : true,
     range : true,

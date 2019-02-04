@@ -14,9 +14,10 @@ describe('js2php', function(){
     (function(i) {
       it(sources[i][0], function(){
         var js_source = fs.readFileSync(sources[i][0]).toString(),
-        php_source = fs.readFileSync(sources[i][1]).toString().trim();
+            php_source = fs.readFileSync(sources[i][1]).toString().trim(),
+            options = {};
 
-        assert.equal(js2php(js_source).trim(), php_source);
+          assert.equal(js2php(js_source, options).trim(), php_source);
       })
     })(i)
   }
