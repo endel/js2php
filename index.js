@@ -5,6 +5,7 @@ var core = require('./core'),
 
 module.exports = function(code, options) {
   options = options || {};
+  var useConciseArrays = !!options.conciseArrays;
   var ast = espree.parse(code, {
     loc : true,
     range : true,
@@ -337,14 +338,20 @@ module.exports = function(code, options) {
       for (var i=0; i < node.properties.length; i++) {
         properties.push( visit(node.properties[i], node) )
       }
-      content = "array(" + properties.join(", ") + ")";
+      content =
+        (useConciseArrays ? "[" : "array(") +
+        properties.join(", ") +
+        (useConciseArrays ? "]" : ")");
 
     } else if (node.type == "ArrayExpression") {
       var elements = [];
       for (var i=0; i < node.elements.length; i++) {
         elements.push( visit(node.elements[i], node) )
       }
-      content = "array(" + elements.join(", ") + ")";
+      content =
+        (useConciseArrays ? "[" : "array(") +
+        elements.join(", ") +
+        (useConciseArrays ? "]" : ")");
 
     } else if (node.type == "Property") {
       var property = (node.key.type == 'Identifier') ? node.key.name : node.key.value;
