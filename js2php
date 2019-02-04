@@ -11,6 +11,9 @@ while (/^-/.test(process.argv[2])) {
   } else if (process.argv[2]=="-n" || process.argv[2]=="--namespace") {
     options.namespace = process.argv[3];
     process.argv.shift(); process.argv.shift();
+  } else if (process.argv[2]=='-w' || process.argv[2]=='--watermark') {
+    options.watermark = process.argv[3];
+    process.argv.shift(); process.argv.shift();
   } else {
     console.warn("Unknown option:", process.argv.shift());
   }

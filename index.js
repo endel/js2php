@@ -945,6 +945,9 @@ module.exports = function(code, options) {
   }
 
   emitter.emit("<?php\n");
+  if (options.watermark) {
+    emitter.emit(`/* ${options.watermark} */\n`);
+  }
   visit(ast);
   return emitter.toString();
 }
