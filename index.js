@@ -190,6 +190,9 @@ module.exports = function(code, options) {
       this.nl();
     }
   };
+  Emitter.prototype.replaceSemiWithComma = function() {
+    this.buffer = this.buffer.replace(/;([ \t]*)$/, ', $1');
+  };
   Emitter.prototype.pushInsertionPoint = function() {
     this.insertionPoints.push(this.buffer.length);
   }
@@ -287,6 +290,9 @@ module.exports = function(code, options) {
 
     } else if (node.type == "VariableDeclarator") {
       scope.get(node).register(node);
+      var isForStatement = node.parent && node.parent.parent &&
+        /^For(In|Of|)Statement$/.test(node.parent.parent.type);
+      if (isForStatement) { emitter.replaceSemiWithComma(); }
 
       // declaration of one variable
       emitter.emit('$' + node.id.name);
@@ -295,9 +301,7 @@ module.exports = function(code, options) {
         emitter.emit(' = ');
         visit(node.init, node);
         semicolon = true;
-      } else if (node.parent.parent.type !== "ForInStatement" &&
-        node.parent.parent.type !== "ForStatement" &&
-        node.parent.parent.type !== "ForOfStatement") {
+      } else if (!isForStatement || node.parent.parent==='ForStatement') {
         emitter.emit(' = null');
         semicolon = true;
       }
