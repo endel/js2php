@@ -362,7 +362,8 @@ module.exports = function(code, options) {
 
         if (leftDefinition && rightDefinition) {
           if (leftDefinition.type == "VariableDeclarator" && rightDefinition.type == "VariableDeclarator") {
-            if (utils.isString(leftDefinition.init) && utils.isString(rightDefinition.init)) {
+            if (leftDefinition.init && utils.isString(leftDefinition.init) &&
+                rightDefinition.init && utils.isString(rightDefinition.init)) {
               node.operator = node.operator.replace('+', '.');
             }
           }
