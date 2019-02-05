@@ -25,3 +25,5 @@ $nonliteral = preg_match($regex, $string);
 
 var_dump(preg_match("/abc\\n[\\/]/", 'def'));
 var_dump(substr("[\\n]", 1, -1));
+
+var_dump(preg_replace('/\.\//', '', "./a/b/c", 1));
