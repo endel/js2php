@@ -170,7 +170,8 @@ module.exports = {
 
     node.parent.arguments = false;
 
-    var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
+    var regexpData = args[0].type==='Literal' &&
+        args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy])?$/),
         regex = regexpData && regexpData[1],
         flags = regexpData && regexpData[2] || "";
 
@@ -224,7 +225,7 @@ module.exports = {
 
     if(args[0].type === 'Literal') {
 
-      var regexpData = args[0].raw.match(/^\/([^\/]+)\/([gimy])?$/),
+      var regexpData = args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy])?$/),
           regex = regexpData && regexpData[1],
           flags = regexpData && regexpData[2] || "",
           isGroup = flags.indexOf('g') >= 0;

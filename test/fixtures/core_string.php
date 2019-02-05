@@ -30,6 +30,11 @@ echo($strArray[0]);
 $strArray2 = str_split($str);
 echo($strArray2[0]);
 
+// shouldn't crash with identifier as argument.
+$xyz = 'll';
+$strArray3 = explode($xyz, $str);
+echo($strArray3[0]);
+
 var_dump(strlen('testing'));
 
 $test_length = 'testing_string_variable';

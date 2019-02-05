@@ -29,6 +29,11 @@ echo(strArray[0]);
 var strArray2 = str.split('');
 echo(strArray2[0]);
 
+// shouldn't crash with identifier as argument.
+var xyz = 'll';
+var strArray3 = str.split(xyz);
+echo(strArray3[0]);
+
 var_dump('testing'.length);
 
 var test_length = 'testing_string_variable';
