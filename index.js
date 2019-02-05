@@ -209,18 +209,25 @@ module.exports = function(code, options) {
   }
   var emitter = new Emitter();
 
-  function handleImport(node) {
+  function handleImport(parent, node) {
     node.declarations.forEach(function(d) {
       if (d.type !== 'VariableDeclarator') { return; }
+      scope.get(parent).register(d);
+      d.isImport = true;
       // the RHS is require('..some string..') but we're going to ignore that
       if (d.id.type === 'ObjectPattern') {
         emitter.locStart(d);
         d.id.properties.forEach(function(p, idx) {
+          scope.get(parent).register({
+            type: 'VariableDeclarator',
+            id: { type: 'Identifier', name: p.value.name },
+            isImport: true,
+          });
           if (idx > 0) { emitter.nl(); }
           var name = utils.classize(p.key.name);
           if (options.namespace) { name = options.namespace + "\\" + name; }
           emitter.emit("use " + name);
-          if (p.key.name !== p.value.name) {
+          if (p.key.name !== p.value.name || options.namespace) {
             emitter.emit(" as " + utils.classize(p.value.name));
           }
           emitter.emit(";");
@@ -228,9 +235,12 @@ module.exports = function(code, options) {
         emitter.locEnd(d);
       } else if (d.id.type === 'Identifier') {
         var name = d.id.name;
-        if (options.namespace) { name = options.namespace + "\\" + name; }
         emitter.locStart(d);
-        emitter.emit("use " + name + ";");
+        if (options.namespace) {
+          emitter.emit(`use ${options.namespace}\\${name} as ${name};`);
+        } else {
+          emitter.emit(`use ${name};`);
+        }
         emitter.locEnd(d);
       }
     });
@@ -274,7 +284,7 @@ module.exports = function(code, options) {
                node.body[0].declarations[0].init.type === 'CallExpression' &&
                node.body[0].declarations[0].init.callee.type === 'Identifier' &&
                node.body[0].declarations[0].init.callee.name === 'require') {
-          handleImport(node.body.shift());
+          handleImport(node, node.body.shift());
         }
       }
 
@@ -310,8 +320,12 @@ module.exports = function(code, options) {
       var identifier = (node.name || node.value);
 
       if (!node.static && !node.isCallee && !node.isMemberExpression) {
-        scope.get(node).getDefinition(node);
-        emitter.emit('$' + identifier);
+        var targetDefinition = scope.get(node).getDefinition(node);
+        if (targetDefinition && targetDefinition.isImport) {
+          emitter.emit(identifier + '::class');
+        } else {
+          emitter.emit('$' + identifier);
+        }
       } else {
         emitter.emit(identifier);
       }
@@ -514,6 +528,13 @@ module.exports = function(code, options) {
 
         object.static = (object.name || object.value || "").match(/^[A-Z]/);
         property.static = String(property.name || property.value || "").match(/^[A-Z]/);
+        var targetDefinition = scope.get(node).getDefinition(object);
+        if (
+          node.object.type === 'Identifier' &&
+          targetDefinition && targetDefinition.isImport
+        ) {
+          object.static = true;
+        }
 
         var accessor;
         if (node.property.static && object.static) {

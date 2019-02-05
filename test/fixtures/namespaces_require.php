@@ -2,6 +2,15 @@
 /* Initial comment */
 namespace NameTest;
 
-use NameTest\Foo;
-use NameTest\Bar;
-use NameTest\Bat;
+use NameTest\Foo as Foo;
+use NameTest\Bar as Bar;
+use NameTest\Bat as Bat;
+use NameTest\semver as semver;
+
+Foo::do_something();
+Bar::do_something();
+Bat::do_something();
+Bat::do_something()->do_something_else();
+echo(semver::satisfies(1, 2));
+echo(semver::satisfies(1, 2)->something_else());
+echo(["Foo" => Foo::class, "Bar" => Bar::class]);

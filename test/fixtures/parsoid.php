@@ -3,7 +3,7 @@
 
 use Bat;
 
-$bar = /* async */function ($x) {
+$bar = /* async */function ($x) use (&$Bat) {
 	return (/* await */ Bat::bat());
 }
 
