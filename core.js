@@ -17,6 +17,10 @@ module.exports = {
 
   evaluate: function(node) {
     var handler = undefined;
+    var get = function(obj, name) {
+      if (obj.hasOwnProperty(name)) { return obj[name]; }
+      return undefined;
+    };
 
     if (node.object && node.object.type === 'MemberExpression') {
       var newNode = module.exports.evaluate(node.object);
@@ -26,17 +30,17 @@ module.exports = {
     }
     if (node.object && node.object.type === 'Literal') {
       var method = node.property.name;
-      handler = node.object.regex ? _regexp[method] : _string[method];
+      handler = node.object.regex ? get(_regexp, method) : get(_string, method);
     } else if (node.object && node.object.type === 'Identifier' && /^(Array|Object|Promise|console)$/.test(node.object.name)) {
       var longName = node.object.name + '_' + node.property.name;
-      handler = _array[longName] || _object[longName] || _promise[longName] || _console[longName];
+      handler = get(_array, longName) || get(_object, longName) || get(_promise, longName) || get(_console, longName);
     } else if (node.property) {
       var method = node.property.name;
       // _array should be before _string here so we pick up the correct
       // multitype version of #length and #indexOf
-      handler = _array[method] || _date[method] || _function[method] || _json[method] || _string[method] || _math[method] || _number[method];
+      handler = get(_array, method) || get(_date, method) || get(_function, method) || get(_json, method) || get(_string, method) || get(_math, method) || get(_number, method);
     } else if (node.callee) {
-      handler = _global[node.callee.name];
+      handler = get(_global, node.callee.name);
     }
 
     if (handler) {
