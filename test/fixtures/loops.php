@@ -37,3 +37,7 @@ for ($i = 0, $j = 2; $i < $j; $i++) {
 for ($k = 0, $count = 2; $k < $count; $k++) {
 	echo($k);
 }
+for (; true; ) {
+	$i++;
+	if ($i > 5) {break;}
+}

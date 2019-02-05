@@ -36,3 +36,7 @@ for (i=0, j=2; i<j; i++) {
 for (var k=0, count=2; k<count; k++) {
   echo(k);
 }
+for (;;) {
+    i++;
+    if (i>5) break;
+}

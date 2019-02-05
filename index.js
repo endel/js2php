@@ -892,9 +892,11 @@ module.exports = function(code, options) {
     } else if (node.type == "ForStatement") {
       emitter.emit("for ");
       emitter.block('(', function() {
-        visit(node.init, node); emitter.ensureSemi(); emitter.emit(' ');
-        visit(node.test, node); emitter.ensureSemi(); emitter.emit(' ');
-        visit(node.update, node);
+        if (node.init) { visit(node.init, node); }
+        emitter.ensureSemi(); emitter.emit(' ');
+        if (node.test) { visit(node.test, node); } else { emitter.emit('true'); }
+        emitter.ensureSemi(); emitter.emit(' ');
+        if (node.update) { visit(node.update, node); }
       }, ')');
       emitter.emit(' ');
       emitter.block('{', function() { visit(node.body, node); }, '}');
