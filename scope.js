@@ -1,5 +1,7 @@
 var utils = require('./utils');
 
+var tmpCounter = 0;
+
 function Scope(root, parent) {
   this.node = root;
   this.parent = parent;
@@ -10,18 +12,27 @@ function Scope(root, parent) {
   this.getters = [];
   this.setters = [];
 
-  this.getDefinition = function(node) {
+  this.getDefinition = function(node, suppressUsing) {
     var value = this.definitions[ node.name ];
 
     if (!value && this.parent) {
       value = this.parent.getDefinition(node);
-      if (value && this.using.indexOf(node.name) === -1) {
+      if (value && (!suppressUsing) && this.using.indexOf(node.name) === -1) {
         this.using.push(node.name);
       }
     }
 
     return value;
-  }
+  };
+
+  this.getTmpName = function() {
+    while (true) {
+      var name = `temp${tmpCounter++}`;
+      if (this.getDefinition({ name }, true) === undefined) {
+        return name;
+      }
+    }
+  };
 
   this.register = function(node) {
     var name = null;

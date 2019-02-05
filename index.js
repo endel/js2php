@@ -133,8 +133,9 @@ module.exports = function(code, options) {
       var startT = node && node.loc && tokenEndMap[locToKey(node.loc.start)];
       var endT = node && node.loc && tokenStartMap[locToKey(node.loc.end)];
       if (
-        startT && startT.type==='Punctuator' && startT.value === '(' &&
-        endT && endT.type==='Punctuator' && endT.value === ')'
+        node.forceParens ||
+          (startT && startT.type==='Punctuator' && startT.value === '(' &&
+           endT && endT.type==='Punctuator' && endT.value === ')')
       ) {
         this.emit('(');
       }
@@ -145,9 +146,9 @@ module.exports = function(code, options) {
     if (!(node && node.suppressParens)) {
       var startT = node && node.loc && tokenEndMap[locToKey(node.loc.start)];
       var endT = node && node.loc && tokenStartMap[locToKey(node.loc.end)];
-      if (
-        startT && startT.type==='Punctuator' && startT.value === '(' &&
-        endT && endT.type==='Punctuator' && endT.value === ')'
+      if (node.forceParens ||
+          (startT && startT.type==='Punctuator' && startT.value === '(' &&
+           endT && endT.type==='Punctuator' && endT.value === ')')
       ) {
         this.emit(')');
       }
@@ -298,6 +299,27 @@ module.exports = function(code, options) {
         visit(node.declarations[i], node);
       }
 
+    } else if (node.type == "VariableDeclarator" && node.id.type === 'ObjectPattern') {
+      var tmpName = scope.get(node).getTmpName();
+      visit({
+        type: 'VariableDeclarator',
+        id: { type: 'Identifier', name: tmpName },
+        init: node.init,
+      }, node);
+      node.id.properties.forEach(function(p) {
+        visit({
+          type: 'VariableDeclarator',
+          id: p.value,
+          init: {
+            type: 'MemberExpression',
+            object: {
+              type: 'Identifier',
+              name: tmpName,
+            },
+            property: p.key,
+          },
+        }, node);
+      });
     } else if (node.type == "VariableDeclarator") {
       scope.get(node).register(node);
       var isForStatement = node.parent && node.parent.parent &&
@@ -375,6 +397,38 @@ module.exports = function(code, options) {
         emitter.decrIndent();
       }
 
+    } else if (node.type == "AssignmentExpression" && node.left.type == "ObjectPattern") {
+      var tmpName = scope.get(node).getTmpName();
+      var expressions = [
+          {
+            type: 'AssignmentExpression',
+            operator: '=',
+            left: {
+              type: 'Identifier',
+              name: tmpName,
+            },
+            right: node.right,
+          },
+      ];
+      node.left.properties.forEach(function(p) {
+        expressions.push({
+          type: 'AssignmentExpression',
+          operator: '=',
+          left: p.value,
+          right: {
+            type: 'MemberExpression',
+            object: {
+              type: 'Identifier',
+              name: tmpName,
+            },
+            property: p.key,
+          },
+        });
+      });
+      visit({
+        type: 'SequenceExpression',
+        expressions
+      }, node);
     } else if (node.type == "AssignmentExpression" || node.type == "AssignmentPattern") {
       scope.get(node).register(node.left);
 
@@ -480,9 +534,11 @@ module.exports = function(code, options) {
         } else if (node.parent.type == "AssignmentExpression") {
           identifier = node.parent.left.name;
         }
-        emitter.emit(";");
-        emitter.nl();
-        emitter.emit("$" + identifier + " = " + "$" + identifier);
+        if (!node.callee.isSequence) {
+          emitter.emit(";");
+          emitter.nl();
+          emitter.emit("$" + identifier + " = " + "$" + identifier);
+        }
       }
 
       if (node.arguments) {
@@ -776,15 +832,47 @@ module.exports = function(code, options) {
         }
       }
 
-    } else if (node.type == "SequenceExpression") {
+    } else if (node.type == "SequenceExpression" && node.parent.type === 'ForStatement') {
 
+      // PHP doesn't really have a true SequenceExpression (aka comma operator)
+      // This version works iff the sequence expression is in a for loop:
       for (var i=0;i<node.expressions.length;i++) {
         visit(node.expressions[i], node);
         if ((i+1) < node.expressions.length) {
           emitter.emit(', ');
         }
       }
-      semicolon = true;
+
+    } else if (node.type == "SequenceExpression") {
+      // This is a completely general version
+      visit({
+        type: 'CallExpression',
+        loc: node.loc,
+        callee: {
+          isSequence: true,
+          forceParens: true,
+          type: 'FunctionExpression',
+          id: null,
+          params: [],
+          body: {
+            type: 'BlockStatement',
+            body: node.expressions.map(function(e, idx) {
+              if (idx < node.expressions.length - 1) {
+                return {
+                  type: 'ExpressionStatement',
+                  expression: e,
+                };
+              } else {
+                return {
+                  type: 'ReturnStatement',
+                  argument: e,
+                };
+              }
+            }),
+          },
+        },
+        arguments: [],
+      }, node);
 
     } else if (node.type == "WhileStatement") {
 
@@ -960,7 +1048,7 @@ module.exports = function(code, options) {
       emitter.emit("/* await */ ");
       visit(node.argument, node);
     } else {
-      throw new Error("'" + node.type + "' not implemented: " + JSON.stringify(node));
+      throw new Error("'" + node.type + "' not implemented: " + JSON.stringify(node.loc));
     }
 
     // append semicolon when required
