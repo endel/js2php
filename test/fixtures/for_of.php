@@ -1,11 +1,11 @@
 <?php
 $items = [
-	["name" => "one"],
-	["name" => "two"],
-	["name" => "three"]
+	[ "name" => "one" ],
+	[ "name" => "two" ],
+	[ "name" => "three" ]
 ];
 
-foreach ($items as $item => $___) {
-	echo($item['name']);
+foreach ( $items as $item => $___ ) {
+	echo( $item[ 'name' ] );
 	continue;
 }

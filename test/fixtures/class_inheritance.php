@@ -1,6 +1,6 @@
 <?php
 class Page {
-	public function __construct($title, $body) {
+	public function __construct( $title, $body ) {
 		$this->title = $title;
 		$this->body = $body;
 	}
@@ -13,8 +13,8 @@ class Page {
 	}
 }
 class Article extends Page {
-	public function __construct($title, $body, $author) {
-		parent::__construct($title, $body);
+	public function __construct( $title, $body, $author ) {
+		parent::__construct( $title, $body );
 		$this->author = $author;
 	}
 	public $author;
@@ -26,5 +26,5 @@ class Article extends Page {
 	}
 }
 
-$article = new Article("Wonderful article", "Yada Yada Yada", "Bob Loblaw");
-var_dump($article->getDescription());
+$article = new Article( "Wonderful article", "Yada Yada Yada", "Bob Loblaw" );
+var_dump( $article->getDescription() );

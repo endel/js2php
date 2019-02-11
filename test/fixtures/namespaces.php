@@ -4,14 +4,14 @@ class Formula {
 	}
 
 	public static function do_something() {
-		var_dump("Something!");
+		var_dump( "Something!" );
 	}
 }
 
 class Hello {
 }
 
-function sum($x, $y) {
+function sum( $x, $y ) {
 	return $x + $y;
 }
 $pi = 3.141593;

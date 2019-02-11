@@ -1,9 +1,9 @@
 <?php
-$something = function ($a, $b = 2, $c = 4) {
+$something = function ( $a, $b = 2, $c = 4 ) {
 	return $a * $b * $c;
 };
-$something2 = function ($a, $b = 2, $c = 4) {return $a * $b * $c;};
+$something2 = function ( $a, $b = 2, $c = 4 ) {return  $a * $b * $c; };
 
-$something3 = function () {return 5;};
+$something3 = function () {return  5; };
 
-var_dump($something3());
+var_dump( $something3() );

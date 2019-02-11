@@ -98,10 +98,18 @@ module.exports = function(code, options) {
   }
   Emitter.prototype.block = function(open, f, close) {
     var firstline = this.line;
-    this.emit(open);
+    this.emit(open); this.emit(' ');
+    var checkpoint = this.buffer.length;
     this.incrIndent();
     f();
-    if (this.line !== firstline) { this.ensureNl(); }
+    if (this.line > firstline) {
+      this.ensureNl();
+    } else if (this.buffer.length !== checkpoint) {
+      this.emit(' ');
+    } else {
+      // no content in block => no space
+      this.buffer = this.buffer.replace(/[\t ]+$/, '');
+    }
     this.decrIndent();
     this.emit(close);
   };
@@ -137,7 +145,7 @@ module.exports = function(code, options) {
           (startT && startT.type==='Punctuator' && startT.value === '(' &&
            endT && endT.type==='Punctuator' && endT.value === ')')
       ) {
-        this.emit('(');
+        this.emit('( ');
       }
     }
   };
@@ -149,7 +157,8 @@ module.exports = function(code, options) {
       if (node.forceParens ||
           (startT && startT.type==='Punctuator' && startT.value === '(' &&
            endT && endT.type==='Punctuator' && endT.value === ')')
-      ) {
+         ) {
+        if (!this.endsInNl()) this.emit(' ');
         this.emit(')');
       }
     }
@@ -180,14 +189,17 @@ module.exports = function(code, options) {
     }
     c.emitted = true;
   };
+  Emitter.prototype.endsInNl = function() {
+    return /\n[ \t]*$/.test(this.buffer);
+  };
   Emitter.prototype.isSemiLast = function() {
     return this.buffer.match(/;\n?[ ]*$/);
   }
   Emitter.prototype.ensureSemi = function() {
-    if (!emitter.isSemiLast()) { this.emit(';'); }
+    if (!emitter.isSemiLast()) { this.emit('; '); }
   };
   Emitter.prototype.ensureNl = function() {
-    if (!/\n[ \t]*$/.test(this.buffer)) {
+    if (!this.endsInNl()) {
       this.nl();
     }
   };
@@ -437,10 +449,11 @@ module.exports = function(code, options) {
       visit(node.right, node);
 
     } else if (node.type == "ConditionalExpression") {
-      emitter.emit('(');
-      node.test.suppressParens = true;
-      visit(node.test, node);
-      emitter.emit(') ? ');
+      emitter.block('(', function() {
+        node.test.suppressParens = true;
+        visit(node.test, node);
+      }, ')');
+      emitter.emit(' ? ');
       visit(node.consequent, node);
       emitter.emit(' : ');
       visit(node.alternate, node);
@@ -492,7 +505,7 @@ module.exports = function(code, options) {
       if (isIIFE) {
         node.expression.isIIFE = true;
         node.expression.suppressParens = true;
-        iife = "call_user_func(";
+        iife = "call_user_func( ";
       }
 
       emitter.emit(iife);
@@ -544,19 +557,17 @@ module.exports = function(code, options) {
       if (node.arguments) {
         var arguments = [];
 
-        if (node.isIIFE) {
-          if (node.arguments.length) emitter.emit(',');
-        } else {
-          emitter.emit('(');
-          emitter.incrIndent();
-        }
-        for (var i=0, length = node.arguments.length; i < length; i++) {
-          if (node.arguments.length===1) { node.arguments[i].suppressParens=true; }
-          visit(node.arguments[i], node);
-          if ((i+1) < length) { emitter.emit(', '); }
-        }
-        emitter.decrIndent();
-        emitter.emit(')');
+        emitter.block(
+          node.isIIFE ? (node.arguments.length ? ',' : '') : '(', function() {
+            for (var i=0, length = node.arguments.length; i < length; i++) {
+              if (node.arguments.length===1) {
+                node.arguments[i].suppressParens=true;
+              }
+              visit(node.arguments[i], node);
+              if ((i+1) < length) { emitter.emit(', '); }
+            }
+          }, ')'
+        );
       }
 
       // allow semicolon if parent node isn't MemberExpression or Property
@@ -619,39 +630,40 @@ module.exports = function(code, options) {
       node.type == "ArrowFunctionExpression") {
       var defaults = node.defaults || [];
 
-      emitter.emit("function " + ((node.id) ? node.id.name : "") + "(");
-      emitter.incrIndent();
+      emitter.emit("function " + ((node.id) ? node.id.name : ""));
+      emitter.block('(', function() {
 
-      // function declaration creates a new scope
-      scope.create(node);
+        // function declaration creates a new scope
+        scope.create(node);
 
-      // compute function params
-      for (var i=0; i < node.params.length; i++) {
-        if (defaults[i]) {
-          visit({
-            type: "BinaryExpression",
-            left: node.params[i],
-            operator: '=',
-            right: defaults[i]
-          }, node);
-        } else {
-          if (node.params.length===1) { node.params[i].suppressParens=true; }
-          visit(node.params[i], node)
-        }
-        if ((i+1) < node.params.length) {
-          emitter.emit(', ');
-        }
+        // compute function params
+        for (var i=0; i < node.params.length; i++) {
+          if (defaults[i]) {
+            visit({
+              type: "BinaryExpression",
+              left: node.params[i],
+              operator: '=',
+              right: defaults[i]
+            }, node);
+          } else {
+            if (node.params.length===1) { node.params[i].suppressParens=true; }
+            visit(node.params[i], node)
+          }
+          if ((i+1) < node.params.length) {
+            emitter.emit(', ');
+          }
 
-        // register parameter identifiers
-        if (scope.get(node).parent) {
-          scope.get(node).register(node.params[i]);
+          // register parameter identifiers
+          if (scope.get(node).parent) {
+            scope.get(node).register(node.params[i]);
+          }
         }
-      }
-      emitter.decrIndent();
-      emitter.emit(') ');
+      }, ')');
+      emitter.emit(' ');
       emitter.pushInsertionPoint();
-      emitter.block('{', function() {
-        emitter.pushInsertionPoint();
+      emitter.emit('{');
+      emitter.pushInsertionPoint();
+      emitter.block('', function() {
 
         visit(node.body, node); /* function contents */
         var using = scope.get(node).using
@@ -661,9 +673,9 @@ module.exports = function(code, options) {
         // try to use parent's variables
         // http://php.net/manual/pt_BR/functions.anonymous.php
         if (using.length > 0 && node.parent.type !== "Program") {
-          emitter.insertAt(1, "use (" + using.map(function(identifier) {
+          emitter.insertAt(1, "use ( " + using.map(function(identifier) {
             return "&$" + identifier;
-          }).join(', ') + ") ");
+          }).join(', ') + " ) ");
         }
 
         // workaround when scope doesn't allow to have the `use` keyword.
@@ -733,6 +745,7 @@ module.exports = function(code, options) {
               visit(s.getters[i].value.body, node);
             }, '}');
           }
+          emitter.nl();
         }, '}');
         emitter.nl();
       }
@@ -796,7 +809,7 @@ module.exports = function(code, options) {
             emitter.emit('public ');
             definitions[i].property.suppressLoc = true;
             visit(definitions[i].property, null);
-            emitter.emit(";");
+            emitter.emit("; ");
             //emitter.locEnd(definitions[i].property);
           }
         }
@@ -877,7 +890,7 @@ module.exports = function(code, options) {
     } else if (node.type == "WhileStatement") {
 
       emitter.emit("while ");
-      emitter.block('( ', function() { node.test.suppressParens = true; visit(node.test, node); }, ' )');
+      emitter.block('(', function() { node.test.suppressParens = true; visit(node.test, node); }, ')');
       emitter.emit(' ');
       emitter.block('{', function() { visit(node.body, node); }, '}');
 
@@ -950,10 +963,10 @@ module.exports = function(code, options) {
       }
 
     } else if (node.type == "BreakStatement") {
-      emitter.emit("break;");
+      emitter.emit("break; ");
 
     } else if (node.type == "ContinueStatement") {
-      emitter.emit("continue;");
+      emitter.emit("continue; ");
 
     } else if (node.type == "NewExpression") {
       // re-use CallExpression for NewExpression's
@@ -975,7 +988,7 @@ module.exports = function(code, options) {
 
       // Modules & Export (http://wiki.ecmascript.org/doku.php?id=harmony:modules_examples)
     } else if (node.type == "ModuleDeclaration") {
-      emitter.emit("namespace " + utils.classize(node.id.value) + ";");
+      emitter.emit("namespace " + utils.classize(node.id.value) + "; ");
       visit(node.body, node);
 
     } else if (node.type == "ExportNamedDeclaration") {
@@ -1029,11 +1042,11 @@ module.exports = function(code, options) {
       }
 
     } else if (node.type === "CatchClause") {
-      emitter.emit(' catch (Exception ');
+      emitter.emit(' catch ( Exception ');
       scope.create(node.param, node);
       node.param.suppressParens = true;
       visit(node.param, node);
-      emitter.emit(") ");
+      emitter.emit(" ) ");
       emitter.block('{', function() { visit(node.body, node); }, '}');
     } else if (node.type === "ThrowStatement") {
       emitter.emit("throw ");
@@ -1065,5 +1078,6 @@ module.exports = function(code, options) {
     emitter.emit(`/* ${options.watermark} */\n`);
   }
   visit(ast);
-  return emitter.toString();
+  emitter.ensureNl();
+  return emitter.toString().replace(/[ \t]+\n/g, '\n'); // remove trailing space
 }

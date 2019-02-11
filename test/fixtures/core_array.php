@@ -1,25 +1,26 @@
 <?php
-$items = ["One", "Two", "Three"];
+$items = [ "One", "Two", "Three" ];
 
-array_unshift($items, "Zero");
-array_shift($items);
+array_unshift( $items, "Zero" );
+array_shift( $items );
 $items[] = "Four";
-array_push($items, "Four", "Five");
+array_push( $items, "Four", "Five" );
 
-var_dump($items);
-echo(join(", ", $items));
+var_dump( $items );
+echo( join( ", ", $items ) );
 
-echo(count($items));
-echo(array_search(["name" => "Three"], $items));
-echo(join(", ", $items));
-echo("\n");
+echo( count( $items ) );
+echo( array_search( [ "name" => "Three" ], $items ) );
+echo( join( ", ", $items ) );
+echo( "\n" );
 
-$count = array_reduce($items, function ($curr, $string) {
-		return $curr + strlen($string);
-	}, 0)
+$count = array_reduce( $items, function ( $curr, $string ) {
+		return $curr + strlen( $string );
+	}, 0
+)
 
 ;
-var_dump($count);
+var_dump( $count );
 
-var_dump(is_array($items));
-var_dump(is_array($count));
+var_dump( is_array( $items ) );
+var_dump( is_array( $count ) );

@@ -1,3 +1,3 @@
 <?php
 $now = time();
-echo($now);
+echo( $now );
