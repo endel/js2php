@@ -55,5 +55,15 @@ module.exports = {
     }
 
     return isRegExp;
-  }
+  },
+
+  isType: function(node, type) {
+    return node &&
+      (typeof(type)==='string' ? (type===node.type) : type.test(node.type));
+  },
+
+  isId: function(node, id) {
+    return module.exports.isType(node, 'Identifier') &&
+      (typeof(id)==='string' ? (id===node.name) : id.test(node.name));
+  },
 }

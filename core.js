@@ -22,16 +22,16 @@ module.exports = {
       return undefined;
     };
 
-    if (node.object && node.object.type === 'MemberExpression') {
+    if (utils.isType(node.object, 'MemberExpression')) {
       var newNode = module.exports.evaluate(node.object);
       if (newNode !== node.object) {
         node.object = newNode;
       }
     }
-    if (node.object && node.object.type === 'Literal') {
+    if (utils.isType(node.object, 'Literal')) {
       var method = node.property.name;
       handler = node.object.regex ? get(_regexp, method) : get(_string, method);
-    } else if (node.object && node.object.type === 'Identifier' && /^(Array|Object|Promise|console)$/.test(node.object.name)) {
+    } else if (utils.isId(node.object, /^(Array|Object|Promise|console)$/)) {
       var longName = node.object.name + '_' + node.property.name;
       handler = get(_array, longName) || get(_object, longName) || get(_promise, longName) || get(_console, longName);
     } else if (node.property) {
