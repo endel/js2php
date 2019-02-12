@@ -34,7 +34,7 @@ module.exports = {
     } else if (utils.isId(node.object, /^(Array|Object|Promise|console)$/)) {
       var longName = node.object.name + '_' + node.property.name;
       handler = get(_array, longName) || get(_object, longName) || get(_promise, longName) || get(_console, longName);
-    } else if (node.property) {
+    } else if (utils.isType(node.property, 'Identifier')) {
       var method = node.property.name;
       // _array should be before _string here so we pick up the correct
       // multitype version of #length and #indexOf

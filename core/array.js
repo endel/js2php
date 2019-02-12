@@ -209,7 +209,7 @@ module.exports = {
     var targetDefinition = scope.get(node).getDefinition(object);
 
     if (!isString && targetDefinition) {
-      if (targetDefinition.type == "Identifier" && targetDefinition.name == "string") {
+      if (utils.isId(targetDefinition, "string")) {
         isString = true;
       } else if (targetDefinition.dataType == "String") {
         isString = true;

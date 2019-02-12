@@ -142,8 +142,8 @@ module.exports = function(code, options) {
       var endT = node && node.loc && tokenStartMap[locToKey(node.loc.end)];
       if (
         node.forceParens ||
-          (startT && startT.type==='Punctuator' && startT.value === '(' &&
-           endT && endT.type==='Punctuator' && endT.value === ')')
+          (utils.isType(startT, 'Punctuator') && startT.value === '(' &&
+           utils.isType(endT, 'Punctuator') && endT.value === ')')
       ) {
         this.emit('( ');
       }
@@ -155,8 +155,8 @@ module.exports = function(code, options) {
       var startT = node && node.loc && tokenEndMap[locToKey(node.loc.start)];
       var endT = node && node.loc && tokenStartMap[locToKey(node.loc.end)];
       if (node.forceParens ||
-          (startT && startT.type==='Punctuator' && startT.value === '(' &&
-           endT && endT.type==='Punctuator' && endT.value === ')')
+          (utils.isType(startT, 'Punctuator') && startT.value === '(' &&
+           utils.isType(endT, 'Punctuator') && endT.value === ')')
          ) {
         if (!this.endsInNl()) this.emit(' ');
         this.emit(')');
@@ -266,10 +266,10 @@ module.exports = function(code, options) {
     if (parent) { node.parent = parent; }
     if (!node.suppressLoc) { emitter.locStart(node); }
 
-    if (node.type == "Program" || node.type == "BlockStatement" || node.type == "ClassBody") {
+    if (utils.isType(node, /^(Program|BlockStatement|ClassBody)$/)) {
       // Skip strictness declaration
-      if (node.body[0] && node.body[0].type === 'ExpressionStatement' &&
-          node.body[0].expression.type === 'Literal' &&
+      if (utils.isType(node.body[0], 'ExpressionStatement') &&
+          utils.isType(node.body[0].expression, 'Literal') &&
           node.body[0].expression.raw.match(/^["']use strict["']$/)) {
         emitter.locStart(node.body[0]); // flush leading comment
         node.body.shift();
@@ -282,21 +282,17 @@ module.exports = function(code, options) {
         }
 
         // skip core update require
-        while (node.body[0] && node.body[0].type === 'ExpressionStatement' &&
-               node.body[0].expression.type === 'CallExpression' &&
-               node.body[0].expression.callee.type === 'Identifier' &&
-               node.body[0].expression.callee.name === 'require') {
+        while (utils.isType(node.body[0], 'ExpressionStatement') &&
+               utils.isType(node.body[0].expression, 'CallExpression') &&
+               utils.isId(node.body[0].expression.callee, 'require')) {
           node.body.shift(); // discard this
         }
 
         // Look for require declarations
-        while (node.body[0] && node.body[0].type === 'VariableDeclaration' &&
-               node.body[0].declarations[0] &&
-               node.body[0].declarations[0].type === 'VariableDeclarator' &&
-               node.body[0].declarations[0].init &&
-               node.body[0].declarations[0].init.type === 'CallExpression' &&
-               node.body[0].declarations[0].init.callee.type === 'Identifier' &&
-               node.body[0].declarations[0].init.callee.name === 'require') {
+        while (utils.isType(node.body[0], 'VariableDeclaration') &&
+               utils.isType(node.body[0].declarations[0], 'VariableDeclarator') &&
+               utils.isType(node.body[0].declarations[0].init, 'CallExpression') &&
+               utils.isId(node.body[0].declarations[0].init.callee, 'require')) {
           handleImport(node, node.body.shift());
         }
       }
@@ -334,8 +330,8 @@ module.exports = function(code, options) {
       });
     } else if (node.type == "VariableDeclarator") {
       scope.get(node).register(node);
-      var isForStatement = node.parent && node.parent.parent &&
-        /^For(In|Of|)Statement$/.test(node.parent.parent.type);
+      var isForStatement = node.parent &&
+          utils.isType(node.parent.parent, /^For(In|Of|)Statement$/);
       if (isForStatement) { emitter.replaceSemiWithComma(); }
 
       // declaration of one variable
@@ -520,7 +516,10 @@ module.exports = function(code, options) {
       node.callee.isCallee = (!calleeDefined || calleeDefined && (calleeDefined.type != "Identifier" &&
         calleeDefined.type != "VariableDeclarator"));
 
-      if (node.parent && node.parent.arguments === false && node.parent.parent.type === 'ExpressionStatement' && node.callee.type === 'Identifier' && node.callee.name === 'array_push' && node.arguments.length === 2) {
+      if (node.parent && node.parent.arguments === false &&
+          utils.isType(node.parent.parent, 'ExpressionStatement') &&
+          utils.isId(node.callee, 'array_push') &&
+          node.arguments.length === 2) {
         // Special case syntax
         visit(node.arguments[0], node);
         emitter.emit('[] = ');
