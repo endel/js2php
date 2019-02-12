@@ -99,7 +99,7 @@ module.exports = {
       type: 'CallExpression',
       callee: {
         type: 'Identifier',
-        name: 'join',
+        name: 'implode',
       },
       arguments: [ args[0], node.parent.callee.object ]
     };

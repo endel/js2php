@@ -7,11 +7,11 @@ $items[] = "Four";
 array_push( $items, "Four", "Five" );
 
 var_dump( $items );
-echo( join( ", ", $items ) );
+echo( implode( ", ", $items ) );
 
 echo( count( $items ) );
 echo( array_search( [ "name" => "Three" ], $items ) );
-echo( join( ", ", $items ) );
+echo( implode( ", ", $items ) );
 echo( "\n" );
 
 $count = array_reduce( $items, function ( $curr, $string ) {
