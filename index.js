@@ -1082,6 +1082,8 @@ module.exports = function(code, options) {
       // Parsoid-specific: ignore yield expression.
       emitter.emit("/* await */ ");
       visit(node.argument, node);
+    } else if (node.type === 'EmptyStatement') {
+      /* do nothing */
     } else {
       throw new Error("'" + node.type + "' not implemented: " + JSON.stringify(node.loc));
     }
