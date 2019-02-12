@@ -15,3 +15,5 @@ module.exports = {
     };
   }
 };
+
+utils.coreAddHash(module.exports, 'console');

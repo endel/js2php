@@ -27,4 +27,6 @@ module.exports = {
   isInteger: function(node) { return method(node, 'is_int'); },
   isFinite: function(node) { return method(node, 'is_finite'); },
 
-}
+};
+
+utils.coreAddHash(module.exports, 'Number');

@@ -13,3 +13,5 @@ module.exports = {
     return node;
   }
 };
+
+utils.coreAddHash(module.exports, 'Promise');

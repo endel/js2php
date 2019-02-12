@@ -29,6 +29,36 @@ module.exports = {
         newNode.parent = node;
       }
     }
+
+    // Handle Array.prototype.slice.call(...)
+    if (utils.isId(node.property, 'call') &&
+        utils.isType(node.object, 'MemberExpression') &&
+        utils.isType(node.object.object, 'MemberExpression') &&
+        utils.isId(node.object.object.object, /^(Array)$/) &&
+        utils.isId(node.object.object.property, 'prototype')) {
+      var type = node.object.object.object.name;
+      var method = node.object.property.name;
+      var longName = type + '#' + method;
+      handler = get(_array, longName);
+      if (handler) {
+        // move the 1st argument to be the reciever
+        var args = utils.clone(node.parent.arguments);
+        var thisArg = args.shift();
+        node = {
+          type: 'CallExpression',
+          callee: {
+            type: 'MemberExpression',
+            object: thisArg,
+            property: node.object.property,
+            isCallee: true,
+          },
+          arguments: args,
+          parent: node.parent,
+        };
+        node.parent.arguments = false;
+      }
+    }
+
     if (utils.isType(node.object, 'Literal')) {
       var method = node.property.name;
       if (!(utils.isType(node.parent, 'CallExpression') && node === node.parent.callee)) {

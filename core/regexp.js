@@ -50,3 +50,5 @@ module.exports = {
     };
   },
 };
+
+utils.coreAddHash(module.exports, 'RegExp');

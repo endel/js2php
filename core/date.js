@@ -16,4 +16,6 @@ module.exports = {
     };
   }
 
-}
+};
+
+utils.coreAddHash(module.exports, 'Date');

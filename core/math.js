@@ -72,4 +72,6 @@ module.exports = {
   // trunc: function(node) { return method(node, 'trunc'); },
 
 
-}
+};
+
+utils.coreAddHash(module.exports, 'Math');

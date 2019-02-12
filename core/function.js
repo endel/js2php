@@ -1,3 +1,5 @@
+var utils = require('../utils');
+
 function apply(node, isCall) {
   var method, arguments = [];
 
@@ -57,4 +59,6 @@ module.exports = {
     return apply(node, false)
   },
 
-}
+};
+
+utils.coreAddHash(module.exports, 'Function');

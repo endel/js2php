@@ -66,4 +66,12 @@ module.exports = {
     return module.exports.isType(node, 'Identifier') &&
       (typeof(id)==='string' ? (id===node.name) : id.test(node.name));
   },
+
+  // utility function for core library definitions
+  coreAddHash: function(exports, className) {
+    Object.keys(exports).forEach(function(name) {
+      if (/[#.]/.test(name)) { return; }
+      exports[className + '#' + name] = exports[name];
+    });
+  },
 }
