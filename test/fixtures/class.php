@@ -55,7 +55,7 @@ class ClassExample {
 
 	function __get($_property) {
 		if ($_property === 'something') {
-			return "Something: " + $this->_something;
+			return "Something: " . $this->_something;
 			 }
 		 }
 	function __set($_property, $value) {

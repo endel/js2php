@@ -53,4 +53,6 @@ if (str.match(/endel/)) {
   var_dump(str);
 }
 
-
+var x = "foo" + foo();
+var y = bar() + 'bar';
+var z = foo() + "bar" + baz();

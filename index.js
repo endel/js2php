@@ -397,15 +397,28 @@ module.exports = function(code, options) {
           if (leftDefinition.type == "VariableDeclarator" && rightDefinition.type == "VariableDeclarator") {
             if (leftDefinition.init && utils.isString(leftDefinition.init) &&
                 rightDefinition.init && utils.isString(rightDefinition.init)) {
-              node.operator = node.operator.replace('+', '.');
+              if (/\+/.test(node.operator)) {
+                node.operator = node.operator.replace('+', '.');
+                node.dataType = 'String';
+              }
             }
           }
         }
         visit(node.left, node);
-        emitter.emit(" " + node.operator + " ");
+        emitter.emit(" ");
+        emitter.pushInsertionPoint();
+        emitter.emit(" ");
         emitter.incrIndent();
         visit(node.right, node);
         emitter.decrIndent();
+        if (utils.isString(node.left) || utils.isString(node.right)) {
+          if (/\+/.test(node.operator)) {
+            node.operator = node.operator.replace('+', '.');
+            node.dataType = 'String';
+          }
+        }
+        emitter.insertAt(0, node.operator);
+        emitter.popInsertionPoint();
       }
 
     } else if (node.type == "AssignmentExpression" && node.left.type == "ObjectPattern") {

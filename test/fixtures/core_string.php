@@ -53,3 +53,7 @@ lengthTest2( $temp );
 if ( preg_match( '/endel/', $str ) ) {
 	var_dump( $str );
 }
+
+$x = "foo" . foo();
+$y = bar() . 'bar';
+$z = foo() . "bar" . baz();

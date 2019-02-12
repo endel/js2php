@@ -37,7 +37,8 @@ module.exports = {
   },
 
   isString: function(node) {
-    return node.type == "Literal" && node.raw.match(/^['|"]/);
+    return (node.type == "Literal" && node.raw.match(/^['|"]/)) ||
+      node.dataType === 'String';
   },
 
   isRegExp: function(node) {
