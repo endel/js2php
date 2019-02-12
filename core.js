@@ -35,9 +35,9 @@ module.exports = {
         method = '.' + method;
       }
       handler = node.object.regex ? get(_regexp, method) : get(_string, method);
-    } else if (utils.isId(node.object, /^(Array|JSON|Math|Object|Promise|console)$/)) {
+    } else if (utils.isId(node.object, /^(Array|Date|JSON|Math|Object|Promise|console)$/)) {
       var longName = node.object.name + '.' + node.property.name;
-      handler = get(_array, longName) || get(_json, longName) || get(_math, longName) || get(_object, longName) || get(_promise, longName) || get(_console, longName);
+      handler = get(_array, longName) || get(_date, longName) || get(_json, longName) || get(_math, longName) || get(_object, longName) || get(_promise, longName) || get(_console, longName);
     } else if (utils.isType(node.property, 'Identifier')) {
       var method = node.property.name;
       if (!(utils.isType(node.parent, 'CallExpression') && node === node.parent.callee)) {
