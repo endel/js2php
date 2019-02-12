@@ -6,41 +6,33 @@ function isJSONClass(node) {
 
 module.exports = {
 
-  stringify: function(node) {
-    if (isJSONClass(node)) {
-      var args = utils.clone(node.parent.arguments);
-      node.parent.arguments = false;
+  'JSON.stringify': function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
 
-      return {
-        type: 'CallExpression',
-        callee: {
-          type: 'Identifier',
-          name: 'json_encode',
-        },
-        arguments: args
-      };
-    } else {
-      return node;
-    }
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'json_encode',
+      },
+      arguments: args
+    };
   },
 
-  parse: function(node) {
-    if (isJSONClass(node)) {
-      var args = utils.clone(node.parent.arguments);
-      node.parent.arguments = false;
+  'JSON.parse': function(node) {
+    var args = utils.clone(node.parent.arguments);
+    node.parent.arguments = false;
 
-      return {
-        type: 'CallExpression',
-        callee: {
-          type: 'Identifier',
-          name: 'json_decode',
-        },
-        arguments: args,
-        forceSkip: true
-      };
-    } else {
-      return node;
-    }
-  }
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'json_decode',
+      },
+      arguments: args,
+      forceSkip: true
+    };
+  },
 
-}
+};
