@@ -449,6 +449,12 @@ module.exports = function(code, options) {
           },
         });
       });
+      // Don't return an assignment expression when visiting the sequence
+      expressions.push({
+        type: "Literal",
+        value: null,
+        raw: "null",
+      });
       visit({
         type: 'SequenceExpression',
         expressions
