@@ -17,4 +17,6 @@ var_dump(hello(5, 6));
 var args = [5, 6];
 var_dump(sum.apply(sum, args));
 
+var foo = function bar() { };
+
 // var_dump(something(5), sum(1,2));

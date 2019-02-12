@@ -18,4 +18,6 @@ var_dump( hello( 5, 6 ) );
 $args = [ 5, 6 ];
 var_dump( call_user_func_array( 'sum', $args ) );
 
+$foo = function /* bar */() {};
+
 // var_dump(something(5), sum(1,2));

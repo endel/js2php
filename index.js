@@ -651,7 +651,15 @@ module.exports = function(code, options) {
       node.type == "ArrowFunctionExpression") {
       var defaults = node.defaults || [];
 
-      emitter.emit("function " + ((node.id) ? node.id.name : ""));
+      emitter.emit("function ");
+      if (node.id) {
+        if (typeof node.id.name === 'string') {
+          emitter.emit(node.id.name);
+        } else if (utils.isType(node.id.name, 'Identifier')) {
+          // PHP doesn't support an identifier here, so suppress it.
+          emitter.emit("/* " + node.id.name.name + " */");
+        }
+      }
       emitter.block('(', function() {
 
         // function declaration creates a new scope
