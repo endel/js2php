@@ -9,7 +9,7 @@ var_dump( $x == 2 );
 
 if ( $x < $y ) {
 	echo( "x < y" );
-} else if ( $x == 2 ) {
+} elseif ( $x == 2 ) {
 	echo( "x==2" );
 } else {
 	echo( "else..." );

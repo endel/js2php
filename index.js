@@ -835,9 +835,14 @@ module.exports = function(code, options) {
       }, '}');
 
       if (node.alternate) {
-        emitter.emit(" else ");
+        emitter.emit(" else");
+        if (utils.isType(node.alternate, "IfStatement") && !node.alternate.leadingComments) {
+          /* suppress the space to create `elseif` token */
+        } else {
+          emitter.emit(" ");
+        }
 
-        if (node.alternate.type == "BlockStatement") {
+        if (utils.isType(node.alternate, "BlockStatement")) {
           emitter.block('{', function() {
             visit(node.alternate, node);
           }, '}');
