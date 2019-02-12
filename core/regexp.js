@@ -1,4 +1,5 @@
-var utils = require('../utils');
+var utils = require('../utils'),
+    scope = require('../scope');
 
 module.exports = {
   exec: function(node) {
@@ -44,6 +45,7 @@ module.exports = {
   test: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     args[0].suppressParens = true;
     if (utils.isType(node.parent.callee.object, "Literal")) {
       var lit = module.exports['.source'](node.parent.callee);

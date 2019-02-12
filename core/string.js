@@ -1,4 +1,5 @@
-var utils = require('../utils');
+var utils = require('../utils'),
+    scope = require('../scope');
 
 module.exports = {
 
@@ -8,6 +9,7 @@ module.exports = {
   indexOf: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     if (args.length === 1) { args[0].suppressParens = true; }
     args.unshift(node.parent.callee.object);
 
@@ -37,8 +39,8 @@ module.exports = {
     var method = "str_replace";
     var args = utils.clone(node.parent.arguments);
     args.push(node.parent.callee.object)
-
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     if(args[0].type === 'Literal'){
       var regexpData = args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/),
@@ -86,8 +88,8 @@ module.exports = {
       args[0].suppressParens = true;
     }
     args.unshift(node.parent.callee.object);
-
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -101,6 +103,7 @@ module.exports = {
 
   trim: function(node) {
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -114,6 +117,7 @@ module.exports = {
 
   trimRight: function(node) {
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -127,6 +131,7 @@ module.exports = {
 
   trimLeft: function(node) {
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -140,6 +145,7 @@ module.exports = {
 
   toUpperCase: function(node) {
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -153,6 +159,7 @@ module.exports = {
 
   toLowerCase: function(node) {
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -168,8 +175,8 @@ module.exports = {
     var method = "explode";
     var args = utils.clone(node.parent.arguments);
     args.push(node.parent.callee.object);
-
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     var regexpData = args[0].type==='Literal' &&
         args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/),
@@ -207,6 +214,7 @@ module.exports = {
   substr: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     if (args.length === 1) { args[0].suppressParens = true; }
     args.unshift(node.parent.callee.object);
 
@@ -243,6 +251,7 @@ module.exports = {
     }
 
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',

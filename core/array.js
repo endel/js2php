@@ -21,6 +21,7 @@ module.exports = {
     node.parent.arguments = false;
     if (args.length === 1) { args[0].suppressParens = true; }
     args.unshift(node.parent.callee.object);
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -34,6 +35,7 @@ module.exports = {
 
   shift: function(node) {
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     return {
       type: 'CallExpression',
       callee: {
@@ -45,6 +47,8 @@ module.exports = {
   },
 
   reverse: function(node) {
+    node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     return {
       type: 'CallExpression',
       callee: {
@@ -58,6 +62,7 @@ module.exports = {
   push: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     if (args.length === 1) { args[0].suppressParens = true; }
     args.unshift(node.parent.callee.object);
 
@@ -72,6 +77,8 @@ module.exports = {
   },
 
   pop: function(node) {
+    node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     return {
       type: 'CallExpression',
       callee: {
@@ -85,6 +92,7 @@ module.exports = {
   join: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     args[0].suppressParens = true;
 
     return {
@@ -100,6 +108,7 @@ module.exports = {
   map: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     args[0].suppressParens = true;
 
     return {
@@ -115,6 +124,7 @@ module.exports = {
   reduce: function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     if (args.length === 1) {
       args[0].suppressParens = true;
     }
@@ -145,8 +155,8 @@ module.exports = {
       args[0].suppressParens = true;
     }
     args.unshift(node.parent.callee.object);
-
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -161,8 +171,8 @@ module.exports = {
   splice: function(node) {
     var args = utils.clone(node.parent.arguments);
     args.unshift(node.parent.callee.object);
-
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
 
     return {
       type: 'CallExpression',
@@ -179,6 +189,7 @@ module.exports = {
         args = utils.clone(node.parent.arguments);
 
     node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
     args[0].suppressParens = true;
 
     var targetDefinition = scope.get(node).getDefinition(node.parent.callee.object);
