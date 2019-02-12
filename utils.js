@@ -47,7 +47,7 @@ module.exports = {
       value = value.substr(1, node.raw.length-2);
     }
 
-    var isRegExp = value.match(/^\/(?:[^\/]|\\.)+\/[gimy]?$/);
+    var isRegExp = value.match(/^\/(?:[^\/]|\\.)+\/[gimy]+?$/);
 
     if (isRegExp) {
       node.raw.value = "'" + value + "'";

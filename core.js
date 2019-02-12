@@ -75,7 +75,7 @@ module.exports = {
       }
       // _array should be before _string here so we pick up the correct
       // multitype version of #length and #indexOf
-      handler = get(_array, method) || get(_date, method) || get(_function, method) || get(_json, method) || get(_string, method) || get(_math, method) || get(_number, method);
+      handler = get(_array, method) || get(_date, method) || get(_function, method) || get(_json, method) || get(_regexp, method) || get(_string, method) || get(_math, method) || get(_number, method);
     } else if (node.callee) {
       handler = get(_global, node.callee.name);
     }

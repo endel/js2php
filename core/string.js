@@ -41,7 +41,7 @@ module.exports = {
     node.parent.arguments = false;
 
     if(args[0].type === 'Literal'){
-      var regexpData = args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy])?$/),
+      var regexpData = args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/),
           regex = regexpData && regexpData[1],
           flags = regexpData && regexpData[2] || "",
           isGroup = flags.indexOf('g') >= 0;
@@ -51,6 +51,7 @@ module.exports = {
         method = "preg_replace";
         args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
         args[0].type = "Literal";
+        args[0].regex = false;
 
         // fill '$limit' param with only 1 replacement
         // http://php.net/manual/en/function.preg-replace.php
@@ -171,7 +172,7 @@ module.exports = {
     node.parent.arguments = false;
 
     var regexpData = args[0].type==='Literal' &&
-        args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy])?$/),
+        args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/),
         regex = regexpData && regexpData[1],
         flags = regexpData && regexpData[2] || "";
 
@@ -180,6 +181,7 @@ module.exports = {
       method = "preg_split";
       args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
       args[0].type = "Literal";
+      args[0].regex = false;
       if (args.length === 2) {
         args[0].suppressParens = true;
       }
@@ -225,7 +227,7 @@ module.exports = {
 
     if(args[0].type === 'Literal') {
 
-      var regexpData = args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy])?$/),
+      var regexpData = args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/),
           regex = regexpData && regexpData[1],
           flags = regexpData && regexpData[2] || "",
           isGroup = flags.indexOf('g') >= 0;
@@ -236,6 +238,7 @@ module.exports = {
 
       args[0].raw = "'" + regex + "'";
       args[0].type = "Literal";
+      args[0].regex = false;
 
     }
 

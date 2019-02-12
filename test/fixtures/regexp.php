@@ -28,4 +28,4 @@ var_dump( substr( "[\\n]", 1, -1 ) );
 
 var_dump( preg_replace( '/\.\//', '', "./a/b/c", 1 ) );
 
-$matches = /*RegExp#exec*/preg_match( "/[abc]/", "LA la black sheep", $FIXME );
+$matches = /*RegExp#exec*/preg_match_all( "/[abc]/i", "LA la black sheep", $FIXME );

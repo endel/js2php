@@ -364,9 +364,12 @@ module.exports = function(code, options) {
       emitter.emit(node.value);
 
     } else if (node.type == "Literal") {
-      var value = (node.raw.match(/^["']undefined["']$/)) ? "NULL" : node.raw;
-      emitter.emit(value);
-
+      if (node.regex) {
+        emitter.emit("/* RegExp */ " + JSON.stringify(node.raw));
+      } else {
+        var value = (node.raw.match(/^["']undefined["']$/)) ? "NULL" : node.raw;
+        emitter.emit(value);
+      }
     } else if (node.type == "BinaryExpression" || node.type == "LogicalExpression") {
 
       if (node.operator == 'in') {
