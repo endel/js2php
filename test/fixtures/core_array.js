@@ -20,3 +20,7 @@ var_dump(count);
 
 var_dump(Array.isArray(items));
 var_dump(Array.isArray(count));
+
+/* This might not work, but it shouldn't crash! */
+var a = Array.prototype.slice.call([1,2,3], 1);
+var_dump(a);

@@ -3,7 +3,7 @@ var utils = require('../utils'),
     string = require('./string');
 
 module.exports = {
-  Array_isArray: function(node) {
+  'Array.isArray': function(node) {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
     return {
@@ -201,7 +201,7 @@ module.exports = {
 
   },
 
-  length: function(node) {
+  '.length': function(node) {
     var method,
         object = (node.parent.callee && node.parent.callee.object) || node.object,
         isString = utils.isString(object);

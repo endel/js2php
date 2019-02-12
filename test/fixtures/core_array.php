@@ -24,3 +24,7 @@ var_dump( $count );
 
 var_dump( is_array( $items ) );
 var_dump( is_array( $count ) );
+
+/* This might not work, but it shouldn't crash! */
+$a = call_user_func( [ Array::prototype, 'slice' ], 1 );
+var_dump( $a );

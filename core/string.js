@@ -21,7 +21,7 @@ module.exports = {
     };
   },
 
-  length: function(node) {
+  '.length': function(node) {
     var object = (node.parent.callee && node.parent.callee.object) || node.object;
     return {
       type: 'CallExpression',

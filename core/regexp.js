@@ -9,7 +9,7 @@ module.exports = {
         .match(/^\/((?:[^\/]|\\.)+)\/([gimy])?$/);
     var flags = (regexpData && regexpData[2]) || "";
     var isGroup = flags.indexOf('g') >= 0;
-    var lit = module.exports.source(node.parent.callee);
+    var lit = module.exports['.source'](node.parent.callee);
     lit.value = '/' + lit.value + '/' + flags.replace(/g/g, "");
     lit.raw = JSON.stringify(lit.value);
     return {
@@ -26,7 +26,7 @@ module.exports = {
     };
   },
 
-  source: function(node) {
+  '.source': function(node) {
     node.object.value = node.object.value.source;
     node.object.raw = JSON.stringify(node.object.value);
     node.object.regex = undefined;
@@ -37,7 +37,7 @@ module.exports = {
     var args = utils.clone(node.parent.arguments);
     node.parent.arguments = false;
     args[0].suppressParens = true;
-    var lit = module.exports.source(node.parent.callee);
+    var lit = module.exports['.source'](node.parent.callee);
     lit.value = '/' + lit.value + '/';
     lit.raw = JSON.stringify(lit.value);
     return {

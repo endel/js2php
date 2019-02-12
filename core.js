@@ -26,16 +26,23 @@ module.exports = {
       var newNode = module.exports.evaluate(node.object);
       if (newNode !== node.object) {
         node.object = newNode;
+        newNode.parent = node;
       }
     }
     if (utils.isType(node.object, 'Literal')) {
       var method = node.property.name;
+      if (!(utils.isType(node.parent, 'CallExpression') && node === node.parent.callee)) {
+        method = '.' + method;
+      }
       handler = node.object.regex ? get(_regexp, method) : get(_string, method);
-    } else if (utils.isId(node.object, /^(Array|Object|Promise|console)$/)) {
-      var longName = node.object.name + '_' + node.property.name;
-      handler = get(_array, longName) || get(_object, longName) || get(_promise, longName) || get(_console, longName);
+    } else if (utils.isId(node.object, /^(Array|Math|Object|Promise|console)$/)) {
+      var longName = node.object.name + '.' + node.property.name;
+      handler = get(_array, longName) || get(_math, longName) || get(_object, longName) || get(_promise, longName) || get(_console, longName);
     } else if (utils.isType(node.property, 'Identifier')) {
       var method = node.property.name;
+      if (!(utils.isType(node.parent, 'CallExpression') && node === node.parent.callee)) {
+        method = '.' + method;
+      }
       // _array should be before _string here so we pick up the correct
       // multitype version of #length and #indexOf
       handler = get(_array, method) || get(_date, method) || get(_function, method) || get(_json, method) || get(_string, method) || get(_math, method) || get(_number, method);

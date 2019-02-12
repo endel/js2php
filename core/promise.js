@@ -1,7 +1,7 @@
 var utils = require('../utils');
 
 module.exports = {
-  Promise_async: function(node) {
+  'Promise.async': function(node) {
     var args = utils.clone(node.parent.arguments);
     if (args.length === 1) {
       node.parent.arguments = false;

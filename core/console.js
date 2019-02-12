@@ -1,7 +1,7 @@
 var utils = require('../utils');
 
 module.exports = {
-  console_assert: function(node) {
+  'console.assert': function(node) {
     return {
       type: 'MemberExpression',
       object: {
