@@ -13,4 +13,4 @@ Bat::do_something();
 Bat::do_something()->do_something_else();
 echo( semver::satisfies( 1, 2 ) );
 echo( semver::satisfies( 1, 2 )->something_else() );
-echo( [ "Foo" => Foo::class, "Bar" => Bar::class ] );
+echo( [ 'Foo' => Foo::class, 'Bar' => Bar::class ] );

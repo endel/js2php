@@ -1,6 +1,6 @@
 <?php
 
-function something( $x, $y = "something", $z = 5 ) {
+function something( $x, $y = 'something', $z = 5 ) {
 	var_dump( $x, $y, $z );
 }
 
@@ -9,7 +9,7 @@ function sum( $a, $b ) {
 }
 
 function hello( $a, $b ) {
-	return "hello!";
+	return 'hello!';
 }
 
 var_dump( call_user_func_array( 'hello', [ 5, 6 ] ) );

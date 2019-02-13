@@ -1,6 +1,6 @@
 <?php
 $a = [];
-$a[ "foo" ] = "bar";
+$a[ 'foo' ] = 'bar';
 var_dump( $a );
 
 // Avoid a crash when looking up a method named hasOwnProperty

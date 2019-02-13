@@ -4,7 +4,7 @@ class Formula {
 	}
 
 	public static function do_something() {
-		var_dump( "Something!" );
+		var_dump( 'Something!' );
 	}
 }
 

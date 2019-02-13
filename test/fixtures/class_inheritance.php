@@ -26,5 +26,5 @@ class Article extends Page {
 	}
 }
 
-$article = new Article( "Wonderful article", "Yada Yada Yada", "Bob Loblaw" );
+$article = new Article( 'Wonderful article', 'Yada Yada Yada', 'Bob Loblaw' );
 var_dump( $article->getDescription() );

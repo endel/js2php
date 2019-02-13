@@ -1,14 +1,14 @@
 <?php
-$str = "Hello";
-echo( trim( trim( trim( substr( trim( trim( "    trimmed    " ) ), 1 ) ) ) ) );
+$str = 'Hello';
+echo( trim( trim( trim( substr( trim( trim( '    trimmed    ' ) ), 1 ) ) ) ) );
 
-var_dump( strtoupper( str_replace( "lo", "ium", "hello" ) ) );
+var_dump( strtoupper( str_replace( 'lo', 'ium', 'hello' ) ) );
 
-var_dump( strtoupper( "something" ) );
-var_dump( strpos( "something", "meth" ) );
+var_dump( strtoupper( 'something' ) );
+var_dump( strpos( 'something', 'meth' ) );
 
-echo( ltrim( "    trimmed" ) );
-echo( rtrim( "trimmed    " ) );
+echo( ltrim( '    trimmed' ) );
+echo( rtrim( 'trimmed    ' ) );
 
 echo( substr( strtoupper( $str ), 1 ) );
 echo( strtolower( $str ) );
@@ -54,6 +54,6 @@ if ( preg_match( '/endel/', $str ) ) {
 	var_dump( $str );
 }
 
-$x = "foo" . foo();
+$x = 'foo' . foo();
 $y = bar() . 'bar';
-$z = foo() . "bar" . baz();
+$z = foo() . 'bar' . baz();

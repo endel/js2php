@@ -365,7 +365,9 @@ module.exports = function(code, options) {
 
     } else if (node.type == "Literal") {
       if (node.regex) {
-        emitter.emit("/* RegExp */ " + JSON.stringify(node.raw));
+        emitter.emit("/* RegExp */ " + utils.stringify(node.raw));
+      } else if (typeof node.value === 'string' && node.value !== 'undefined') {
+        emitter.emit(utils.stringify(node.value));
       } else {
         var value = (node.raw.match(/^["']undefined["']$/)) ? "NULL" : node.raw;
         emitter.emit(value);
@@ -741,7 +743,8 @@ module.exports = function(code, options) {
 
     } else if (node.type == "Property") {
       var property = (node.key.type == 'Identifier') ? node.key.name : node.key.value;
-      emitter.emit('"'+property+'" => ');
+      if (typeof(property)==='string') { property = utils.stringify(property); }
+      emitter.emit(String(property) + ' => ');
       visit(node.value, node);
 
     } else if (node.type == "ReturnStatement") {

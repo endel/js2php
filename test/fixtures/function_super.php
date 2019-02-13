@@ -1,13 +1,13 @@
 <?php
 class Page {
-	public function read( $name = "Page" ) {
+	public function read( $name = 'Page' ) {
 		echo( "{$name} read.
 " );
 	}
 }
 
 class Article extends Page {
-	public function read( $name = "Article" ) {
+	public function read( $name = 'Article' ) {
 		parent::read( $name );
 	}
 }

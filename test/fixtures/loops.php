@@ -10,9 +10,9 @@ for ( $i = 0, $j = 10;  $i < $j;  $i++ ) {
 }
 
 $obj = [
-	"one" => 'one',
-	"two" => 'two',
-	"three" => 'three'
+	'one' => 'one',
+	'two' => 'two',
+	'three' => 'three'
 ];
 
 foreach ( $obj as $i => $___ ) {

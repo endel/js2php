@@ -1,8 +1,8 @@
 <?php
 json_encode( [
-		"integer" => 5,
-		"string" => "hey",
-		"nested" => [ "objects" => [ "here" => "yey" ] ]
+		'integer' => 5,
+		'string' => 'hey',
+		'nested' => [ 'objects' => [ 'here' => 'yey' ] ]
 	]
 );
 
@@ -11,9 +11,9 @@ json_encode( [
 ;
 
 var_dump( json_encode( [
-			"integer" => 5,
-			"string" => "hey",
-			"nested" => [ "objects" => [ "here" => "yey" ] ]
+			'integer' => 5,
+			'string' => 'hey',
+			'nested' => [ 'objects' => [ 'here' => 'yey' ] ]
 		]
 	)
 

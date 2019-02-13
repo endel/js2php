@@ -13,7 +13,7 @@ module.exports = {
       var isGroup = flags.indexOf('g') >= 0;
       var lit = module.exports['.source'](node.parent.callee);
       lit.value = '/' + lit.value + '/' + flags.replace(/g/g, "");
-      lit.raw = JSON.stringify(lit.value);
+      lit.raw = utils.stringify(lit.value);
       return {
         type: 'CallExpression',
         callee: {
@@ -34,7 +34,7 @@ module.exports = {
   '.source': function(node) {
     if (utils.isType(node.object, "Literal")) {
       node.object.value = node.object.value.source;
-      node.object.raw = JSON.stringify(node.object.value);
+      node.object.raw = utils.stringify(node.object.value);
       node.object.regex = undefined;
       return node.object;
     } else {
@@ -50,7 +50,7 @@ module.exports = {
     if (utils.isType(node.parent.callee.object, "Literal")) {
       var lit = module.exports['.source'](node.parent.callee);
       lit.value = '/' + lit.value + '/';
-      lit.raw = JSON.stringify(lit.value);
+      lit.raw = utils.stringify(lit.value);
       return {
         type: 'CallExpression',
         callee: {

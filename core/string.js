@@ -51,7 +51,8 @@ module.exports = {
       // check for RegExp for preg_replace
       if (regexpData) {
         method = "preg_replace";
-        args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
+        args[0].value = "/" + regex + "/" + flags.replace("g", "");
+        args[0].raw = utils.stringify(args[0].value);
         args[0].type = "Literal";
         args[0].regex = false;
 
@@ -186,7 +187,8 @@ module.exports = {
     // check for RegExp for preg_replace
     if (regexpData) {
       method = "preg_split";
-      args[0].raw = "'/" + regex + "/" + flags.replace("g", "") + "'";
+      args[0].value = "/" + regex + "/" + flags.replace("g", "");
+      args[0].raw = utils.stringify(args[0].value);
       args[0].type = "Literal";
       args[0].regex = false;
       if (args.length === 2) {
@@ -244,7 +246,8 @@ module.exports = {
       if (isGroup) { flags = flags.replace("g", ""); }
       regex = "/" + regex + "/" + flags;
 
-      args[0].raw = "'" + regex + "'";
+      args[0].value = regex;
+      args[0].raw = utils.stringify(args[0].value);
       args[0].type = "Literal";
       args[0].regex = false;
 
