@@ -353,7 +353,10 @@ module.exports = function(code, options) {
 
       if (!node.static && !node.isCallee && !node.isMemberExpression) {
         var targetDefinition = scope.get(node).getDefinition(node);
-        if (targetDefinition && targetDefinition.isImport) {
+        if (utils.isType(node.parent && node.parent.parent, "NewExpression") &&
+            node.parent.callee === node) {
+          emitter.emit(identifier);
+        } else if (targetDefinition && targetDefinition.isImport) {
           emitter.emit(identifier + '::class');
         } else {
           emitter.emit('$' + identifier);
