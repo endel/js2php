@@ -55,6 +55,7 @@ if ( preg_match( '/endel/', $str ) ) {
 }
 
 var_dump( "Strings with funny characters like \n and \$foo and {\$foo}" );
+var_dump( '\\\\' );
 
 function foo() { return 'x';  }
 

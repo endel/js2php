@@ -22,7 +22,7 @@ module.exports = {
   stringify: function(string, forceDoubleQuote) {
     if (/^[ -&\(-~]*$/.test(string) && !forceDoubleQuote) {
       /* can use an efficient single-quoted string */
-      return "'" + string.replace(/'|(?:\\(?=[\\']))/g, '\\$&') + "'";
+      return "'" + string.replace(/'|(?:\\(?=[\\']|$))/g, '\\$&') + "'";
     }
     return JSON.stringify(string).replace(/\$/g, '\\$'); // double-quoted string
   },
