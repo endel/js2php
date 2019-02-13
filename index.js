@@ -49,7 +49,7 @@ module.exports = function(code, options) {
     // slideFwd and slideBck skip over whitespace
     var slideFwd = function(loc) {
       loc = {line: loc.line, column: loc.column};
-      while (true) {
+      while (loc.line <= lines.length) {
         var l = lines[loc.line - 1];
         var c = l[loc.column];
         if (!/[ \t\r\n]/.test(c)) break;
@@ -60,7 +60,7 @@ module.exports = function(code, options) {
     };
     var slideBck = function(loc) {
       loc = {line: loc.line, column: loc.column};
-      while (true) {
+      while (loc.line >= 1) {
         var l = lines[loc.line - 1];
         var c = l[loc.column - 1];
         if (!/[ \t\r\n]/.test(c)) break;
