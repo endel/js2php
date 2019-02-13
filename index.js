@@ -708,7 +708,8 @@ module.exports = function(code, options) {
 
         // try to use parent's variables
         // http://php.net/manual/pt_BR/functions.anonymous.php
-        if (using.length > 0 && node.parent.type !== "Program") {
+        if (using.length > 0 &&
+            !utils.isType(node.parent, /^(Program|MethodDefinition)$/)) {
           emitter.insertAt(1, "use ( " + using.map(function(identifier) {
             return "&$" + identifier;
           }).join(', ') + " ) ");
