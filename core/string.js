@@ -237,24 +237,26 @@ module.exports = {
 
     if(args[0].type === 'Literal') {
 
-      var regexpData = args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/),
-          regex = regexpData && regexpData[1],
+      var regexpData = args[0].regex &&
+          args[0].raw.match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/),
+          pattern = regexpData && regexpData[1],
           flags = regexpData && regexpData[2] || "",
           isGroup = flags.indexOf('g') >= 0;
 
       // remove unsupported /g from regexp, to use preg_match_all
-      if (isGroup) { flags = flags.replace("g", ""); }
-      regex = "/" + regex + "/" + flags;
-
-      args[0].value = regex;
+      if (isGroup) { flags = flags.replace(/g/g, ''); }
+      args[0].value = '/' + pattern + '/' + flags;
       args[0].raw = utils.stringify(args[0].value);
       args[0].type = "Literal";
-      args[0].regex = false;
-
+      args[0].regex = undefined;
     }
 
     node.parent.arguments = false;
     scope.get(node).getDefinition(node.parent.callee.object);
+    if (isGroup) {
+      // results come back in this out-argument
+      args.push({ type: 'Identifier', name: 'FIXME' });
+    }
 
     return {
       type: 'CallExpression',

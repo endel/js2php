@@ -4,16 +4,20 @@ var utils = require('../utils'),
 module.exports = {
   exec: function(node) {
     var args = utils.clone(node.parent.arguments);
-    if (utils.isType(node.parent.callee.object, "Literal")) {
+    if (utils.isType(node.parent.callee.object, "Literal") &&
+        node.parent.callee.object.regex) {
       node.parent.arguments = false;
       args[0].suppressParens = true;
       var regexpData = node.parent.callee.object.raw
           .match(/^\/((?:[^\/]|\\.)+)\/([gimy]+)?$/);
+      var pattern = (regexpData && regexpData[1]);
       var flags = (regexpData && regexpData[2]) || "";
       var isGroup = flags.indexOf('g') >= 0;
-      var lit = module.exports['.source'](node.parent.callee);
-      lit.value = '/' + lit.value + '/' + flags.replace(/g/g, "");
+      var lit = node.parent.callee.object;
+      if (isGroup) { flags = flags.replace(/g/g, ''); }
+      lit.value = '/' + pattern + '/' + flags;
       lit.raw = utils.stringify(lit.value);
+      lit.regex = undefined;
       return {
         type: 'CallExpression',
         callee: {
@@ -32,8 +36,8 @@ module.exports = {
   },
 
   '.source': function(node) {
-    if (utils.isType(node.object, "Literal")) {
-      node.object.value = node.object.value.source;
+    if (utils.isType(node.object, "Literal") && node.object.regex) {
+      node.object.value = node.object.regex.pattern;
       node.object.raw = utils.stringify(node.object.value);
       node.object.regex = undefined;
       return node.object;
@@ -47,10 +51,12 @@ module.exports = {
     node.parent.arguments = false;
     scope.get(node).getDefinition(node.parent.callee.object);
     args[0].suppressParens = true;
-    if (utils.isType(node.parent.callee.object, "Literal")) {
-      var lit = module.exports['.source'](node.parent.callee);
-      lit.value = '/' + lit.value + '/';
+    if (utils.isType(node.parent.callee.object, "Literal") &&
+        node.parent.callee.object.regex) {
+      var lit = node.parent.callee.object;
+      lit.value = lit.raw;
       lit.raw = utils.stringify(lit.value);
+      lit.regex = undefined;
       return {
         type: 'CallExpression',
         callee: {
