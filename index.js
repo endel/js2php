@@ -1011,10 +1011,10 @@ module.exports = function(code, options) {
       // re-use CallExpression for NewExpression's
       var newNode = utils.clone(node);
       newNode.type = "CallExpression";
+      newNode.suppressParens = true;
 
       emitter.emit('new ');
       visit(newNode, node);
-      return;
 
     } else if (node.type == "FunctionExpression") {
 

@@ -95,3 +95,5 @@ class ClassExample {
 $example = new ClassExample( 'awesome' );
 var_dump( call_user_func_array( [ $example, 'hello' ], [] ) );
 var_dump( $example->hello() );
+
+$c = ( new ClassExample( 'cool' ) )->hello();
