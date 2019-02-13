@@ -1,8 +1,7 @@
 <?php
 class Page {
 	public function read( $name = 'Page' ) {
-		echo( "{$name} read.
-" );
+		echo( "{$name} read.\n" );
 	}
 }
 

@@ -54,9 +54,13 @@ if ( preg_match( '/endel/', $str ) ) {
 	var_dump( $str );
 }
 
+var_dump( "Strings with funny characters like \n and \$foo and {\$foo}" );
+
+function foo() { return 'x';  }
+
 $x = 'foo' . foo();
-$y = bar() . 'bar';
-$z = foo() . 'bar' . baz();
+$y = foo() . 'bar';
+$z = foo() . 'bar' . foo();
 
 $typeOf = $node->getAttribute( 'typeof' );
 var_dump( preg_match( '/begin/', $typeOf ) );

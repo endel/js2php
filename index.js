@@ -1058,7 +1058,7 @@ module.exports = function(code, options) {
       emitter.emit('"');
       for (var i=0; i<nodes.length; i++) {
         if (nodes[i].type == "TemplateElement") {
-          emitter.emit(nodes[i].value.cooked);
+          emitter.emit(utils.stringify(nodes[i].value.cooked, true).slice(1,-1));
         } else {
           emitter.emit('{');
           visit(nodes[i], node);

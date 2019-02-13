@@ -53,9 +53,13 @@ if (str.match(/endel/)) {
   var_dump(str);
 }
 
+var_dump("Strings with funny characters like \n and $foo and {$foo}");
+
+function foo() { return "x"; }
+
 var x = "foo" + foo();
-var y = bar() + 'bar';
-var z = foo() + "bar" + baz();
+var y = foo() + 'bar';
+var z = foo() + "bar" + foo();
 
 var typeOf = node.getAttribute('typeof');
 var_dump(typeOf.match('begin'));
