@@ -54,7 +54,11 @@ module.exports = {
     if (utils.isType(node.parent.callee.object, "Literal") &&
         node.parent.callee.object.regex) {
       var lit = node.parent.callee.object;
-      lit.value = lit.raw;
+      if (lit.value.source) {
+        lit.value = '/' + lit.value.source + '/';
+      } else {
+        lit.value = lit.raw;
+      }
       lit.raw = utils.stringify(lit.value);
       lit.regex = undefined;
       return {
