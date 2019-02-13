@@ -243,6 +243,13 @@ module.exports = {
           flags = regexpData && regexpData[2] || "",
           isGroup = flags.indexOf('g') >= 0;
 
+      // String#match can be called with a raw string as well.
+      if ((!args[0].regex) && typeof args[0].value === 'string') {
+        var r = new RegExp(args[0].value);
+        pattern = r.source;
+        flags = '';
+        isGroup = false;
+      }
       // remove unsupported /g from regexp, to use preg_match_all
       if (isGroup) { flags = flags.replace(/g/g, ''); }
       args[0].value = '/' + pattern + '/' + flags;

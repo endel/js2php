@@ -56,3 +56,6 @@ if (str.match(/endel/)) {
 var x = "foo" + foo();
 var y = bar() + 'bar';
 var z = foo() + "bar" + baz();
+
+var typeOf = node.getAttribute('typeof');
+var_dump(typeOf.match('begin'));

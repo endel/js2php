@@ -57,3 +57,6 @@ if ( preg_match( '/endel/', $str ) ) {
 $x = 'foo' . foo();
 $y = bar() . 'bar';
 $z = foo() . 'bar' . baz();
+
+$typeOf = $node->getAttribute( 'typeof' );
+var_dump( preg_match( '/begin/', $typeOf ) );
