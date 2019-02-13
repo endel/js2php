@@ -151,6 +151,8 @@ module.exports = {
       } else {
         args[1].trailingComments = [{ type: 'Block', value: 'CHECK THIS'}];
       }
+    } else if (node.parent.arguments.length === 0) {
+        args.unshift({ type: 'Literal', value: 0, raw: '0' });
     } else {
       args[0].suppressParens = true;
     }
