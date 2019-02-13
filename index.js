@@ -346,6 +346,8 @@ module.exports = function(code, options) {
         semicolon = true;
       }
 
+    } else if (utils.isId(node, "undefined")) {
+      emitter.emit("null");
     } else if (node.type == "Identifier") {
       var identifier = (node.name || node.value);
 
