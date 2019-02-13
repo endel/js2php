@@ -5,6 +5,49 @@ var core = require('./core'),
 
 module.exports = function(code, options) {
   options = options || {};
+  if (options.braced) {
+    // special option to handle code inside braced regions only
+    var nest = 0, quote = null, outside = '', inside = '';
+    var noptions = Object.assign({}, options, {
+      braced: false, watermark: false, noOpenTag: true, indent: 1,
+    });
+    if (options.watermark) { outside += `/* ${options.watermark} */\n`; }
+    code.split(
+      //  /([{}]|\/\*(?:(?!\*\/).)*\*\/|\/\/[^\n]*(?:\n|$)|"[^"]*"|'[^']'|\[[^\]]*\])/mg
+      /([{}'"\[\]]|\/\*|\*\/|\/\/|\n)/g
+    ).forEach(function(chunk) {
+      var isStartQuote = (nest === 0) &&
+          (chunk==='"' || chunk==="'" || chunk==='[' || chunk==='/*' || chunk==='//');
+      if (quote || isStartQuote) {
+        var trailingBackslash = outside.endsWith('\\');
+        outside += chunk;
+        if (chunk === quote && !trailingBackslash) { quote = null; }
+        else if (!quote) {
+          switch (chunk) {
+          case '/*' : quote = '*/'; break;
+          case '//': quote = '\n'; break;
+          case '[': quote = ']'; break;
+          default: quote = chunk; break;
+          }
+        }
+        return;
+      }
+      if (chunk==='}') { nest--; }
+      if (nest <= 0) {
+        if (inside) {
+          outside += module.exports(inside, noptions);
+          inside = '';
+        }
+        outside += chunk;
+        nest = 0;
+      } else {
+        inside += chunk;
+      }
+      if (chunk==='{') { nest++; }
+    });
+    if (inside) { outside += module.exports(inside, noptions); }
+    return outside;
+  }
   var useConciseArrays = (options.conciseArrays === false) ? false : true;
   var ast = espree.parse(code, {
     loc : true,
@@ -221,6 +264,7 @@ module.exports = function(code, options) {
     }
   }
   var emitter = new Emitter();
+  if (options.indent) { emitter.indentLevel = options.indent; }
 
   function handleImport(parent, node) {
     node.declarations.forEach(function(d) {
@@ -275,7 +319,7 @@ module.exports = function(code, options) {
         node.body.shift();
       }
       if (node.type === 'Program') {
-        if (options.namespace) {
+        if (options.namespace && !options.noOpenTag) {
           // Add optional namespace.
           emitter.emit(`namespace ${options.namespace};`);
           emitter.nl();
@@ -1118,11 +1162,15 @@ module.exports = function(code, options) {
     if (!node.suppressLoc) { emitter.locEnd(node); }
   }
 
-  emitter.emit("<?php\n");
+  if (!options.noOpenTag) {
+    emitter.emit("<?php\n");
+  }
   if (options.watermark) {
     emitter.emit(`/* ${options.watermark} */\n`);
   }
   visit(ast);
-  emitter.ensureNl();
+  if (!options.noOpenTag) {
+    emitter.ensureNl();
+  }
   return emitter.toString().replace(/[ \t]+\n/g, '\n'); // remove trailing space
 }
