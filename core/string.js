@@ -102,6 +102,50 @@ module.exports = {
     };
   },
 
+  substr: function(node) {
+	// This method is deprecated/discouraged in JS, but maps best to the PHP
+	// function.
+    var args = utils.clone(node.parent.arguments);
+    if (node.parent.arguments.length === 1) {
+      args[0].suppressParens = true;
+    }
+    args.unshift(node.parent.callee.object);
+    node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'substr',
+      },
+      arguments: args
+    };
+  },
+
+  substring: function(node) {
+    var args = utils.clone(node.parent.arguments);
+    if (node.parent.arguments.length > 1) {
+      // Second argument to substr is very different from String#substring
+	  // (And String#substring is almost-but-not-quite-like String#slice)
+      args[1].trailingComments = [{ type: 'Block', value: 'CHECK THIS'}];
+    } else {
+      args[0].suppressParens = true;
+    }
+    args.unshift(node.parent.callee.object);
+    node.parent.arguments = false;
+    scope.get(node).getDefinition(node.parent.callee.object);
+
+    return {
+      type: 'CallExpression',
+      callee: {
+        type: 'Identifier',
+        name: 'substr',
+      },
+      arguments: args
+    };
+  },
+
   trim: function(node) {
     node.parent.arguments = false;
     scope.get(node).getDefinition(node.parent.callee.object);
