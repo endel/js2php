@@ -1,5 +1,5 @@
 // naked throw
-throw new Exception("doh!")
+throw new Exception("doh!");
 
 // simple try catch
 try {
@@ -10,7 +10,7 @@ try {
 
 // try finally block
 try {
-  throw new Exception("The sky is falling!")
+  throw new Exception("The sky is falling!");
 } finally {
   var_dump("All clear")
 }

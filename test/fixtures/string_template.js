@@ -15,3 +15,5 @@ class Item {
 var item = new Item();
 
 echo(`${str1}, ${str2}, ${n1}, ${n2}, ${ item.method() }, ${ func() }`)
+
+echo(`funny characters like " and \n should be fine ${ 1 + 2 }`);

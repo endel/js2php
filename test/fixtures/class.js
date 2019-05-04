@@ -52,3 +52,5 @@ class ClassExample {
 example = new ClassExample("awesome");
 var_dump(example.hello.apply());
 var_dump(example.hello());
+
+var c = (new ClassExample("cool")).hello();

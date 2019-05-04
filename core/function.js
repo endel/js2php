@@ -1,3 +1,5 @@
+var utils = require('../utils');
+
 function apply(node, isCall) {
   var method, arguments = [];
 
@@ -25,10 +27,14 @@ function apply(node, isCall) {
   } else {
     // .apply use call_user_func_array
     method = "call_user_func_array";
-    arguments.push({
-      type: "ArrayExpression",
-      elements: (node.parent.arguments[0] || {elements:[]}).elements
-    });
+    if (node.parent.arguments[0]) {
+      arguments.push(node.parent.arguments[0]);
+    } else {
+      arguments.push({
+        type: "ArrayExpression",
+        elements: [],
+      });
+    }
   }
 
   node.parent.arguments = false;
@@ -53,4 +59,6 @@ module.exports = {
     return apply(node, false)
   },
 
-}
+};
+
+utils.coreAddHash(module.exports, 'Function');

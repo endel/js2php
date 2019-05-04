@@ -19,6 +19,14 @@ module.exports = {
     }
   },
 
+  stringify: function(string, forceDoubleQuote) {
+    if (/^[ -&\(-~]*$/.test(string) && !forceDoubleQuote) {
+      /* can use an efficient single-quoted string */
+      return "'" + string.replace(/'|(?:\\(?=[\\']|$))/g, '\\$&') + "'";
+    }
+    return JSON.stringify(string).replace(/\$/g, '\\$'); // double-quoted string
+  },
+
   clone: function(obj) {
     var parent = null, response = null;
 
@@ -37,7 +45,8 @@ module.exports = {
   },
 
   isString: function(node) {
-    return node.type == "Literal" && node.raw.match(/^['|"]/);
+    return (node.type == "Literal" && node.raw.match(/^['|"]/)) ||
+      node.dataType === 'String';
   },
 
   isRegExp: function(node) {
@@ -47,7 +56,7 @@ module.exports = {
       value = value.substr(1, node.raw.length-2);
     }
 
-    var isRegExp = value.match(/^\/[^\/]+\/[gimy]?$/);
+    var isRegExp = value.match(/^\/(?:[^\/]|\\.)+\/[gimy]+?$/);
 
     if (isRegExp) {
       node.raw.value = "'" + value + "'";
@@ -55,5 +64,23 @@ module.exports = {
     }
 
     return isRegExp;
-  }
+  },
+
+  isType: function(node, type) {
+    return node &&
+      (typeof(type)==='string' ? (type===node.type) : type.test(node.type));
+  },
+
+  isId: function(node, id) {
+    return module.exports.isType(node, 'Identifier') &&
+      (typeof(id)==='string' ? (id===node.name) : id.test(node.name));
+  },
+
+  // utility function for core library definitions
+  coreAddHash: function(exports, className) {
+    Object.keys(exports).forEach(function(name) {
+      if (/[#.]/.test(name)) { return; }
+      exports[className + '#' + name] = exports[name];
+    });
+  },
 }

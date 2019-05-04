@@ -18,9 +18,9 @@
     "transcompiler"
   ],
   "devDependencies": {
-    "browserify": "~16.2.2",
-    "mocha": "~5.2.0",
-    "assert": "~1.4.1"
+    "assert": "~1.4.1",
+    "browserify": "^16.2.3",
+    "mocha": "~5.2.0"
   },
   "scripts": {
     "test": "mocha ./test/suite.js"

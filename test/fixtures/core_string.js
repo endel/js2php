@@ -29,6 +29,11 @@ echo(strArray[0]);
 var strArray2 = str.split('');
 echo(strArray2[0]);
 
+// shouldn't crash with identifier as argument.
+var xyz = 'll';
+var strArray3 = str.split(xyz);
+echo(strArray3[0]);
+
 var_dump('testing'.length);
 
 var test_length = 'testing_string_variable';
@@ -48,4 +53,14 @@ if (str.match(/endel/)) {
   var_dump(str);
 }
 
+var_dump("Strings with funny characters like \n and $foo and {$foo}");
+var_dump('\\\\');
 
+function foo() { return "x"; }
+
+var x = "foo" + foo();
+var y = foo() + 'bar';
+var z = foo() + "bar" + foo();
+
+var typeOf = node.getAttribute('typeof');
+var_dump(typeOf.match('begin'));
